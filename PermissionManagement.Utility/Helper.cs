@@ -842,7 +842,8 @@ namespace PermissionManagement.Utility
         public static string GetCurrentURL()
         {
             var rootURL = Helper.GetRootURL(true);
-            return string.Format("{0}{1}", rootURL.Remove(rootURL.Length - 1), HttpContext.Current.Request.RawUrl);
+            return string.Format("{0}{1}", rootURL.EndsWith("/") ? 
+                rootURL.Remove(rootURL.Length - 1) : rootURL, HttpContext.Current.Request.RawUrl);
         }
 
         public static string GetLastApprovalStatus(HttpRequestBase httpRequestBase)
