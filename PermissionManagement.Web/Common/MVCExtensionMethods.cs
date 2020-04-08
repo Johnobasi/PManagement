@@ -35,6 +35,24 @@ namespace PermissionManagement.Web
             return SecurityConfig.GetCurrent().Cookie.Timeout * 60 * 1000;
         }
 
+        public static HtmlString GetLastLogin(this HtmlHelper htmlHelper)
+        {
+            var userID = Helper.GetLoggedInUserID();
+            var cacheService = ((IContainer)HttpContext.Current.Application["container"]).Resolve<ICacheService>();
+            string lastLogin = cacheService.Get(string.Format("UserLastLogIn-{0}", userID)) as string;
+
+            if (string.IsNullOrEmpty(lastLogin))
+            {
+                var securityService = ((IContainer)HttpContext.Current.Application["container"]).Resolve<ISecurityService>();
+                var user = securityService.GetUser(userID);
+                if (user.LastLogInDate.HasValue) { lastLogin = user.LastLogInDate.Value.ToString("dd-MM-yyyy HH:mm:ss"); }
+                cacheService.AddAndTieToSession(string.Format("UserLastLogIn-{0}", userID),
+                        lastLogin);
+            }
+            string dt = string.IsNullOrEmpty(lastLogin) ? DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") : lastLogin;
+            return new HtmlString(dt);
+        }
+
         public static HtmlString GetSideMenu(this HtmlHelper htmlHelper)
         {
             var context = HttpContext.Current;

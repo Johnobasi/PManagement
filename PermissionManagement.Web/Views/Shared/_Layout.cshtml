@@ -43,7 +43,7 @@
 				<div class="pull-left">
 					<p style="float: left;">
 						<font style="font-size:12px;padding-right:10px;">Welcome, <strong>@Helper.GetLoggedInUser()</strong></font><br>
-						<font style="font-size:10px;padding-right:10px;">Last Login: <span id="lastLogin"></span></font>
+						<font style="font-size:10px;padding-right:10px;">Last Login: <span id="lastLogin">@Html.GetLastLogin()</span></font>
 					</p>
 					<p style="float: left;">
 						<a href="@Helper.GetRootURL()/logout" class="btn btn-danger pull-right" title="Log in/out">
@@ -94,7 +94,7 @@
         {
             $('.readonly').find('input, textarea, select').attr('readonly', 'readonly');
         });
-        $(document).ready(function ()
+        @*$(document).ready(function ()
         {
             $.ajax({
                 method: "POST",
@@ -107,7 +107,7 @@
                 }
             })
             setActiveMenu();
-        });
+        });*@
 
         $(document).ready(function ()
         {
@@ -127,6 +127,7 @@
             window.location.href = rootUrl + "/LogOut?xxkeyxx=" + curr_hour + ":" + curr_min;
         }
 
+        @*
         function setActiveMenu()
         {
             var url = document.URL
@@ -170,7 +171,7 @@
             {
                 document.getElementById('href' + subMenuItem).className = 'active-menu';
             }
-        }
+        }*@
     </script>
 </body>
 </html>

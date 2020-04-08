@@ -50,7 +50,8 @@ namespace PermissionManagement.Repository
             {
                 foreach (Difference diff in diffs)
                 {
-                    if (propertiesToCompare.Contains(diff.PropertyName.Substring(1)))
+                    //if (propertiesToCompare.Contains(diff.PropertyName.Substring(1)))
+                    if (propertiesToCompare.Contains(diff.PropertyName))
                     {
                         //FinetuneDiff(diff);
                         var d = new AuditChangeDiff()

@@ -12,6 +12,7 @@ namespace PermissionManagement.Web
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
             routes.MapRoute("LogIn", "LogIn", new { controller = "Home", action = "LogIn" });
             routes.MapRoute("LogOut", "LogOut", new { controller = "Home", action = "LogOut" });

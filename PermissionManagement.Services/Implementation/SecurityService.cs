@@ -172,6 +172,11 @@ namespace PermissionManagement.Services
                 return null;
             }
 
+            string lastLogin = userObject.LastLogInDate.HasValue ?
+                userObject.LastLogInDate.Value.ToString("dd-MM-yyyy HH:mm:ss") 
+                : Helper.GetLocalDate().ToString("dd-MM-yyyy HH:mm:ss");
+            cacheService.AddAndTieToSession(string.Format("UserLastLogIn-{0}", userObject.Username), lastLogin);
+
             var roleID = GetRoleList().Where(f => f.RoleName == Constants.General.AdministratorRoleName).Select(r => r.RoleId).FirstOrDefault();
             if (!IsBusinessHour())
             {
@@ -179,6 +184,8 @@ namespace PermissionManagement.Services
                 if (roleID != userObject.RoleId)
                 {
                     v.Errors.Add(new ValidationError("User.NonBusinessHoursLoginError", username, "Login outside business hours is not allowed, Please try logging in during business hours."));
+                    states.Add(typeof(LogInDto), v);
+                    return new AuthenticationDataDto() { AppAuthenticationFailed = true };
                 }
             }
 
