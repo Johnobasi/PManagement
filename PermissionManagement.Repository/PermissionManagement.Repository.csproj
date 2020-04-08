@@ -110,6 +110,7 @@
     <Compile Include="Implementation\PasswordHistoryRepository.cs" />
     <Compile Include="Implementation\PortalSettingsRepository.cs" />
     <Compile Include="Implementation\ReportsRepository.cs" />
+    <Compile Include="Implementation\RepositoryServicesPortalSetting.cs" />
     <Compile Include="Interface\IAuditRepository.cs" />
     <Compile Include="Interface\IFinacleRepository.cs" />
     <Compile Include="Interface\IMessageRepository.cs" />

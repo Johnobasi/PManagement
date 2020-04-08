@@ -85,7 +85,7 @@ namespace PermissionManagement.Web
                     AuditAction = filterContext.ActionDescriptor.ActionName,
                     ClientIPAddress = Helper.GetIPAddress(),
                     Username = userName == "anonymous" ? Helper.GetLoggedInUserID() : userName,
-                    AuditPage = context.Request.RawUrl,
+                    AuditPage = context.Request.RawUrl.Length > 500 ? context.Request.RawUrl.Substring(0, 500) : context.Request.RawUrl,
                     AuditType = "Audit Trail", //this.GetType().Name
                     AuditMessage = auditMessage,
                     AuditData = auditData,

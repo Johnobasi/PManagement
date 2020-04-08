@@ -5,6 +5,7 @@ using PermissionManagement.Utility;
 using PermissionManagement.Validation;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Linq;
 
 namespace PermissionManagement.Services
 {
@@ -26,7 +27,7 @@ namespace PermissionManagement.Services
         #endregion
 
         #region IPortasSetting Implementation
-        public IEnumerable<PortalSetting> GetPortalSettings() { return portalSettingsRepository.GetPortalSettings(); }
+        public IList<PortalSetting> GetPortalSettings() { return portalSettingsRepository.GetPortalSettings(); }
 
         public string AddPortalSetting(PortalSetting portalSetting, ref ValidationStateDictionary states)
         {
@@ -37,29 +38,37 @@ namespace PermissionManagement.Services
 
         public PortalSetting GetSettingByKey(string Key)
         {
-            var key = string.Format("{0}-{1}", Constants.PortalSettingsKeysConstants.PSID, Key);
-            var setting = cacheService.Get(key) as PortalSetting;
+            //var key = string.Format("{0}-{1}", Constants.PortalSettingsKeysConstants.PSID, Key);
+            var cacheKey = string.Format("PORTALSETTINGS");
+            var setting = cacheService.Get(cacheKey) as IList<PortalSetting>;
             if (setting == null)
             {
-                setting = portalSettingsRepository.GetSettingByKey(Key);
-                #region To Set the FallBack Value if available in "Constants.PortalSettingsKeyFallBackValues"
-                if (setting != null && string.IsNullOrWhiteSpace(setting.Value))
-                {
-                    FieldInfo property = typeof(Constants.PortalSettingsKeyFallBackValues).GetField(Key.ToUpper());
-                    setting.Value = property.GetValue(property).ToString();
-                }
-                #endregion
-                cacheService.Add(key, setting);
+                setting = portalSettingsRepository.GetPortalSettings();
+                cacheService.Add(cacheKey, setting);
+                RepositoryServicesPortalSetting.PortalSetting = setting.ToList();
             }
-            return setting;
+
+            var item = setting.Where(f => f.Key == Key).Select(i => i).FirstOrDefault();
+
+            #region To Set the FallBack Value if available in "Constants.PortalSettingsKeyFallBackValues"
+            if (item == null || string.IsNullOrEmpty(item.Value))
+            {
+                FieldInfo property = typeof(Constants.PortalSettingsKeyFallBackValues).GetField(Key.ToUpper());
+                item.Value = property.GetValue(property).ToString();
+            }
+            #endregion
+
+            return item;
         }
 
         public string UpdateSetting(PortalSetting portalSetting)
         {
-            var key = string.Format("{0}-{1}", Constants.PortalSettingsKeysConstants.PSID, portalSetting.Key);
-            cacheService.Remove(key);
             string updateStatusMsg = portalSettingsRepository.UpdateSetting(ref portalSetting);
-            cacheService.Add(key, portalSetting);
+
+            RepositoryServicesPortalSetting.PortalSetting[
+                    RepositoryServicesPortalSetting.PortalSetting.FindIndex(
+                    item => item.Key == portalSetting.Key)].Value = portalSetting.Value;
+
             return updateStatusMsg;
         }
         #endregion

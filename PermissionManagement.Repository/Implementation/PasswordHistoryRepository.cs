@@ -2,6 +2,8 @@
 using System.Data;
 using System.Text;
 using Dapper;
+using System;
+
 namespace PermissionManagement.Repository
 {
     public class PasswordHistoryRepository : IPasswordHistoryRepository
@@ -23,8 +25,15 @@ namespace PermissionManagement.Repository
 
         public bool InsertPassword(PasswordHistoryModel passwordHistoryModel)
         {
-            return context.Execute("INSERT INTO PasswordHistory ([UserName],[Password]) VALUES(@Username,@Password)",
-                                    new { Username = passwordHistoryModel.userName, Password = passwordHistoryModel.password }) == 1 ? true : false;
+            passwordHistoryModel.CreatedTime = DateTime.Now;
+
+            return context.Execute("INSERT INTO PasswordHistory ([UserName],[Password],[CreatedTime]) VALUES(@Username,@Password,@CreatedTime)",
+                                    new
+                                    {
+                                        Username = passwordHistoryModel.UserName,
+                                        Password = passwordHistoryModel.Password,
+                                        CreatedTime = passwordHistoryModel.CreatedTime
+                                    }) == 1 ? true : false;
         }
 
         public bool IsRepeatingPassword(PasswordHistoryModel passwordHistory, int unUsablePasswordCount)
@@ -35,8 +44,8 @@ namespace PermissionManagement.Repository
             var count = (context.ExecuteScalar(sbQuery.ToString(), new
                                                                    {
                                                                        PreviousPasswordsCount = unUsablePasswordCount,
-                                                                       UserName = passwordHistory.userName,
-                                                                       Password = passwordHistory.password
+                                                                       UserName = passwordHistory.UserName,
+                                                                       Password = passwordHistory.Password
                                                                    }));
             int passwordCount = 0;
             int.TryParse(count.ToString(), out passwordCount);

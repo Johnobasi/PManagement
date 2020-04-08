@@ -514,7 +514,7 @@ namespace PermissionManagement.Services
                 return;
             }
             int unUsablePreviousPasswordCount = 0;
-            if (passwordHistoryServiceInstance.IsRepeatingPassword(new PasswordHistoryModel() { userName = userName, password = newPassword }, out unUsablePreviousPasswordCount))
+            if (passwordHistoryServiceInstance.IsRepeatingPassword(new PasswordHistoryModel() { UserName = userName, Password = newPassword }, out unUsablePreviousPasswordCount))
             {
                 v.Errors.Add(new ValidationError("NewPassword.PreviouslyUsedError", oldPassword, "Password change not successful. Last " + unUsablePreviousPasswordCount + " Passwords cannot be used."));
                 states.Add(typeof(ChangePasswordDto), v);
@@ -522,7 +522,7 @@ namespace PermissionManagement.Services
             }
 
             repositoryInstance.ResetUserPassword(userName, newPassword, false);
-            passwordHistoryServiceInstance.InsertPassword(new PasswordHistoryModel() { userName = userName, password = newPassword });
+            passwordHistoryServiceInstance.InsertPassword(new PasswordHistoryModel() { UserName = userName, Password = newPassword });
 
         }
 

@@ -4,7 +4,7 @@ namespace PermissionManagement.Repository
 {
     public interface IFinacleRepository
     {
-        FinacleRole GetUserRoleFromFinacle(string userID);
+        FinacleRole GetUserRoleFromFlexcube(string userID);
         string GetUserTillAccountFromFinacle(string userID);
     }
 }

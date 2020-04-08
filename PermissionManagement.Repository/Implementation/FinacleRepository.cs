@@ -16,7 +16,7 @@ namespace PermissionManagement.Repository
             context = dbContext.Connection;
         }
 
-        public FinacleRole GetUserRoleFromFinacle(string userID)
+        public FinacleRole GetUserRoleFromFlexcube(string userID)
         {
             if (string.IsNullOrEmpty(userID)) return null;
             var sql = "select user_id AS UserID, USER_APPL_NAME AS ApplicationName, a.sol_id AS BranchCode, b.sol_desc AS BranchName from tbaadm.upr a, tbaadm.Sol b where a.sol_id=b.sol_id  and a.del_flg='N' and b.del_flg='N' and user_id= :UserID";

@@ -266,7 +266,7 @@ namespace PermissionManagement.Web
        private static AuthenticationDataDto FinacleAuthorization(string username, ISecurityService authenticationService, IFinacleRepository finacleRepository, AuthenticationDataDto currentUser, AuthenticationResponse result)
        {
            //get finacle role
-           FinacleRole finacleRole = finacleRepository.GetUserRoleFromFinacle(username);
+           FinacleRole finacleRole = finacleRepository.GetUserRoleFromFlexcube(username);
            if (finacleRole == null)
                finacleRole = new FinacleRole() { UserID = username, BranchCode = null, ApplicationName = string.Empty };
 
@@ -658,7 +658,7 @@ namespace PermissionManagement.Web
                 {
                     if (authenticationResponse.ResponseCode == "0")
                     {
-                        var result = finacleRepository.GetUserRoleFromFinacle(request.UserID);
+                        var result = finacleRepository.GetUserRoleFromFlexcube(request.UserID);
 
                         if (result != null)
                         {

@@ -25,9 +25,9 @@ namespace PermissionManagement.Repository
         #endregion
 
         #region IPortalSettingsRepository Implementation
-        public IEnumerable<PortalSetting> GetPortalSettings()
+        public IList<PortalSetting> GetPortalSettings()
         {
-             return context.Query<PortalSetting>("SELECT [Key], [Value] ,[PSID] FROM PortalSettings") as IEnumerable<PortalSetting>; 
+             return context.Query<PortalSetting>("SELECT [Key], [Value] ,[PSID] FROM PortalSettings").ToList(); 
         }
 
         public string AddSetting(PortalSetting portalSetting)
@@ -69,8 +69,13 @@ namespace PermissionManagement.Repository
 
         public PortalSetting GetSettingByKey(string key)
         {
-
             PortalSetting portalSetting = new PortalSetting();
+            if (RepositoryServicesPortalSetting.PortalSetting != null)
+            {
+                portalSetting = RepositoryServicesPortalSetting.PortalSetting.Where(f => f.Key == key).Select(k => k).FirstOrDefault();
+            }
+            if (portalSetting != null) return portalSetting;
+
             string sql = "SELECT [Key], [Value], [PSID] FROM PortalSettings WHERE [KEY] = @Key";
             portalSetting = context.Query<PortalSetting>(sql, new { KEY = key }).FirstOrDefault();
             return portalSetting;           

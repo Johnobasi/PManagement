@@ -16,13 +16,13 @@ namespace PermissionManagement.Web
         #region Properties and Variables
         private ISecurityService _securityService;
         private ICacheService _cacheService;
-        private IFinacleRepository _finacleRepository;
+        private IFinacleRepository _flexCubeRepository;
         #endregion
 
         public UserSetupController(ISecurityService securityService, ICacheService cacheService, IFinacleRepository finacleRepository)
         {
             _securityService = securityService;
-            _finacleRepository = finacleRepository;
+            _flexCubeRepository = finacleRepository;
             _cacheService = cacheService;
         }
 
@@ -197,9 +197,10 @@ namespace PermissionManagement.Web
             model.InitiatedBy = ControllerContext.RequestContext.HttpContext.User.Identity.Name;
             if (model.AccountType == Constants.AccountType.LocalFinacle || model.AccountType == Constants.AccountType.ADLocal)
             {
-                var finacleRecord = _finacleRepository.GetUserRoleFromFinacle(model.Username);
-                if (finacleRecord != null) { model.BranchID = finacleRecord.BranchCode; }
+                var flexcubeRecord = _flexCubeRepository.GetUserRoleFromFlexcube(model.Username);
+                if (flexcubeRecord != null) { model.BranchID = flexcubeRecord.BranchCode; }
             }
+            
             if (model.AccountType == Constants.AccountType.ADLocal && !string.IsNullOrEmpty(model.Username))
             {
                 if (!Access.IsUserInAD(model.Username))

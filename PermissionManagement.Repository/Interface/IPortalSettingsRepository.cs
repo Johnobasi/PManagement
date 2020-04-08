@@ -5,7 +5,7 @@ namespace PermissionManagement.Repository
 {
     public interface IPortalSettingsRepository
     {
-        IEnumerable<PortalSetting> GetPortalSettings();
+        IList<PortalSetting> GetPortalSettings();
         string AddSetting(PortalSetting portalSetting);
         string UpdateSetting(ref PortalSetting portalSetting);
         PortalSetting GetSettingByKey(string key);
