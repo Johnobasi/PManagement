@@ -1,26 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Security.Cryptography;
-using System.Net.Http;
-using System.Threading;
-using System.Web.Mvc;
-using System.Security.Principal;
-using System.Web.Routing;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Globalization;
-//using PermissionManagement.IoC;
+﻿//using PermissionManagement.IoC;
 using DryIoc;
-using PermissionManagement.Validation;
-using PermissionManagement.Utility;
 using PermissionManagement.Model;
-using PermissionManagement.Services;
-using System.Configuration;
-using System.ServiceModel;
 using PermissionManagement.Repository;
-using System.Runtime.Caching;
+using PermissionManagement.Services;
+using PermissionManagement.Utility;
+using PermissionManagement.Validation;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
+using System.Threading;
+using System.Web;
 
 namespace PermissionManagement.Web
 {
@@ -202,8 +192,8 @@ namespace PermissionManagement.Web
        private static void CreateThreadPrincipalAndAuthCookie(AuthenticationDataDto currentUser, SecurityConfig settings)
        {
            //create the cookie                
-           Identity identity = new Identity(new Guid(currentUser.SessionId), currentUser.Username, currentUser.Roles, currentUser.FullName, currentUser.BranchCode);
-           Principal principal = new Principal(identity, identity.Roles);
+           Identity identity = new Identity(new Guid(currentUser.SessionId), currentUser.Username, currentUser.Roles, currentUser.FullName, currentUser.BranchCode, currentUser.AccountType);
+           Principal principal = new Principal(identity, identity.Roles, identity.AccountType);
 
            System.Web.HttpContext.Current.User = principal;
            System.Threading.Thread.CurrentPrincipal = principal;
@@ -216,6 +206,7 @@ namespace PermissionManagement.Web
                    cookie.Username = currentUser.Username;
                    cookie.UserRoles = currentUser.Roles;
                    cookie.BranchCode = currentUser.BranchCode;
+                   cookie.AccountType = currentUser.AccountType;
                    cookie.AuthExpiry = Helper.GetLocalDate().AddMinutes(settings.Cookie.Timeout);
                }
                cookie.Save();
@@ -433,7 +424,7 @@ namespace PermissionManagement.Web
         {
             if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Verify) == true  && approvalStatus == Constants.ApprovalStatus.Pending) return true;
 
-            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Pending && initiatedBy != Helper.GetLoggedInUserID() && IsDeleted == false) return true;
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Pending && initiatedBy != Helper.GetLoggedInUserID()) return true;  //&& IsDeleted == false
 
             if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Approved) return true;
 
@@ -638,8 +629,9 @@ namespace PermissionManagement.Web
                 Identity identity = new Identity(new Guid(current.SessionUid),
                                                 settings.Cookie.CookieOnlyCheck ? current.Username : dto.Username,
                                                 settings.Cookie.CookieOnlyCheck ? current.UserRoles : dto.Roles, dto.FullName,
-                                                settings.Cookie.CookieOnlyCheck ? current.BranchCode : dto.BranchCode);
-                var principal = new Principal(identity, identity.Roles);
+                                                settings.Cookie.CookieOnlyCheck ? current.BranchCode : dto.BranchCode,
+                                                settings.Cookie.CookieOnlyCheck ? current.AccountType : dto.AccountType);
+                var principal = new Principal(identity, identity.Roles,identity.AccountType);
                 context.User = principal;
                 Thread.CurrentPrincipal = principal;
 
@@ -887,5 +879,34 @@ namespace PermissionManagement.Web
             }
             return null;
         }
+
+        internal static bool IsSessionActive(string sessionId)
+        {
+            if (string.IsNullOrEmpty(sessionId))
+            {
+                return false;
+            }
+            var settings = SecurityConfig.GetCurrent();
+            var current = AuthCookie.GetCurrent();
+            ISecurityService authenticationService = ((IContainer)System.Web.HttpContext.Current.Application["container"]).Resolve<ISecurityService>();
+            var userObject = authenticationService.GetUserBySessionId(sessionId);
+            bool isActive = false;
+
+            if (userObject != null)
+            {
+                if ((!userObject.CurrentSessionId.HasValue || sessionId != userObject.CurrentSessionId.ToString()) ||
+                    (userObject.LastActivityDate.Value.AddMinutes(settings.Cookie.Timeout) > Helper.GetLocalDate()) ||
+                    ((userObject.ApprovalStatus != Constants.ApprovalStatus.Approved) || userObject.IsLockedOut || userObject.IsDeleted))
+                {
+                    if (userObject.LastActivityDate.Value.AddMinutes(settings.Cookie.Timeout) > Helper.GetLocalDate())
+                    {
+                        isActive = true;
+                    }
+                }
+            }
+
+            return isActive;
+        }
     }
+
 }

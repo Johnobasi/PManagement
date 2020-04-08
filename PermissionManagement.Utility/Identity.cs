@@ -3,7 +3,7 @@ using System.Security.Principal;
 
 namespace PermissionManagement.Utility
 {
-     [Serializable()]
+    [Serializable()]
     public class Identity : IIdentity
     {
         #region "constructors"
@@ -20,7 +20,7 @@ namespace PermissionManagement.Utility
         /// </summary>
         /// <param name="id">Session Id</param>
         /// <param name="roles"></param>
-        public Identity(Guid id, string name, string roles, string fullName, string branchCode)
+        public Identity(Guid id, string name, string roles, string fullName, string branchCode, string accountType)
         {
             m_Name = name;
             this.Roles = roles;
@@ -28,6 +28,7 @@ namespace PermissionManagement.Utility
             m_IsAuthenticated = true;
             FullName = fullName;
             BranchCode = branchCode;
+            AccountType = accountType;
             //m_StaffID = StaffID;
             //Me.PersonName = personName
             //Me.EmailAddress = emailAddress
@@ -100,6 +101,13 @@ namespace PermissionManagement.Utility
 
         public string FullName { get; set; }
         public string BranchCode { get; set; }
-       #endregion
+
+        private string m_AccountType;
+        public string AccountType
+        {
+            get { return m_AccountType; }
+            set { m_AccountType = value; }
+        }
+        #endregion
     }
 }

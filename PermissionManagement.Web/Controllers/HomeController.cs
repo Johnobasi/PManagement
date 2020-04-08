@@ -1,29 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
-using System.Web.Routing;
-using System.Threading;
+﻿using Newtonsoft.Json;
 using PermissionManagement.Model;
-using PermissionManagement.Utility;
-using PermissionManagement.Services;
-using PermissionManagement.Validation;
-using System.Configuration;
 using PermissionManagement.Repository;
-using Newtonsoft.Json;
+using PermissionManagement.Services;
+using PermissionManagement.Utility;
+using PermissionManagement.Validation;
+using System;
+using System.Configuration;
 using System.Globalization;
+using System.Web.Mvc;
 
 namespace PermissionManagement.Web
 {
     public class HomeController : BaseController
     {
+        #region Properties and Variables
         private ISecurityService _securityService;
         private IFinacleRepository _finacleRepository;
         private IAuditService _auditService;
         private IAuditRepository _auditRepository;
-        private ISecurityRepository _securityRepository;
+        private ISecurityRepository _securityRepository; 
+        #endregion
         public HomeController(ISecurityService securityService, IFinacleRepository finacleRepository, IAuditService auditService, IAuditRepository auditRepository, ISecurityRepository securityRepository)
         {
             _securityService = securityService;
@@ -40,17 +36,14 @@ namespace PermissionManagement.Web
                 var roleName = ((Identity)ControllerContext.HttpContext.User.Identity).Roles;
                 url = Helper.GetRootURL() + "/admin";
             }
-            else
-            {
-                url = Helper.GetRootURL() + "/Login";
-            }
+            else { url = Helper.GetRootURL() + "/Login"; }
             return new RedirectResult(url);
         }
 
+        #region Login Action Results
         public ActionResult Login()
         {
             var m = new LogInDto();
-
             var returnUrl = Request.QueryString["ReturnUrl"] as string;
             if (!string.IsNullOrEmpty(returnUrl))
             {
@@ -59,6 +52,7 @@ namespace PermissionManagement.Web
             }
             return View(m);
         }
+
         [AuditFilter()]
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -106,45 +100,39 @@ namespace PermissionManagement.Web
             }
 
             model.Password = "XXXXXXXXXXXX";
-            SetAuditInfo(IsSuccess ? "Successful" : Helper.StripHtml(errorList, true), 
-                JsonConvert.SerializeObject(model), 
+            SetAuditInfo(IsSuccess ? "Successful" : Helper.StripHtml(errorList, true),
+                JsonConvert.SerializeObject(model),
                 string.IsNullOrEmpty(model.Username) ? "not-supplied" : model.Username);
 
-            if (IsSuccess)
-            {
-                return new RedirectResult(url);
-            }
+            if (IsSuccess) { return new RedirectResult(url); }
             else
             {
                 // If we got this far, something failed, redisplay form
                 return View(model);
             }
-        }
-               
+        } 
+        #endregion
+
         [SecurityAccess()]
         [AuditFilter()]
         public ActionResult LogOut()
         {
             Access.SignOut(_securityService);
-            
-            if (!string.IsNullOrEmpty((Request.QueryString["xxkeyxx"] as string)))
-            {
-                Danger(string.Format("You have been logged out due to inactivity for {0} minutes. Please log in again.", SecurityConfig.GetCurrent().Cookie.Timeout), true);
-            }
-            //var url = string.Format("{0}/{1}", Helper.GetRootURL(), SecurityConfig.GetCurrent().Login.Page);
 
+            if (!string.IsNullOrEmpty((Request.QueryString["xxkeyxx"] as string)))
+            { Danger(string.Format("You have been logged out due to inactivity for {0} minutes. Please log in again.", SecurityConfig.GetCurrent().Cookie.Timeout), true); }
+            //var url = string.Format("{0}/{1}", Helper.GetRootURL(), SecurityConfig.GetCurrent().Login.Page);
             return RedirectToAction(SecurityConfig.GetCurrent().Login.Page);
         }
 
+        #region ResetPassword Action Results
         [AuditFilter()]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult ResetPassword(ResetPasswordDto model)
         {
             ValidationStateDictionary states = new ValidationStateDictionary();
-
             _securityService.ResetPassword(model.Username, model.Email, ref states);
-
             if (!states.IsValid)
             {
                 var errorList = ValidationHelper.BuildModelErrorList(states);
@@ -152,16 +140,11 @@ namespace PermissionManagement.Web
                 ModelState.AddModelErrors(states);
                 return View(model);
             }
-            else
-            {
-                return View("ResetPasswordMessage");
-            }
+            else { return View("ResetPasswordMessage"); }
         }
 
-        public ActionResult ResetPassword()
-        {
-            return View(new ResetPasswordDto());
-        }
+        public ActionResult ResetPassword() { return View(new ResetPasswordDto()); } 
+        #endregion
 
         [SecurityAccess()]
         public JsonResult LastLogin(string id)
@@ -171,26 +154,6 @@ namespace PermissionManagement.Web
             string dt = string.IsNullOrEmpty(lastLogin) ? DateTime.Now.ToString("dd-MM-yyyy hh:mm:ss") : DateTime.Parse(lastLogin, CultureInfo.CreateSpecificCulture("en-US")).ToString("dd-MM-yyyy hh:mm:ss");
             return Json(dt, JsonRequestBehavior.AllowGet);
         }
-        //[HttpGet]
-        //public ActionResult AccountActivate(string id)
-        //{
-        //    if (string.IsNullOrEmpty(id))
-        //    {
-        //        return Redirect(Helper.GetRootURL());
-        //    }
-
-        //    var decrypted = Crypto.Decrypt(id);
-        //    var status = false;
-        //    if (Helper.IsValidGuid(decrypted))
-        //    {
-        //        status = _securityService.ActivateAccount(decrypted);
-        //    }
-
-        //    ViewData["Status"] = status ? "Your account has been successfully activated. Thank you.<br /><br />"
-        //                                : "The account represented by the supplied url cannot be activated. Please contact the Administrator for assistance. Thank you.<br /><br />";
-
-        //    return View("ActivationInfo");
-        //}
 
         public ActionResult Error(string errorCode)
         {
@@ -198,21 +161,14 @@ namespace PermissionManagement.Web
             return View();
         }
 
-        public ActionResult PageNotFound()
-        {
-            return View();
-        }
+        public ActionResult PageNotFound() { return View(); }
 
         private string GetUrlTargetMessage(string returnUrl)
         {
             returnUrl = returnUrl.Replace(Helper.GetRootURL(), string.Empty);
             if (!string.IsNullOrEmpty(ConfigurationManager.AppSettings["VirtualDirectory"]))
-            {
-                returnUrl = returnUrl.Replace(ConfigurationManager.AppSettings["VirtualDirectory"], string.Empty).ToLower();
-            }
-
+            { returnUrl = returnUrl.Replace(ConfigurationManager.AppSettings["VirtualDirectory"], string.Empty).ToLower(); }
             return string.Empty;
         }
-
     }
 }

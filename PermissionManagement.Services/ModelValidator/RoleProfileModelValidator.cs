@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PermissionManagement.Model;
-using PermissionManagement.Repository;
-using PermissionManagement.Validation;
-using PermissionManagement.Utility;
-
+﻿
 namespace PermissionManagement.Services
 {
     //    public class RoleProfileModelValidator : IValidator<RoleProfileModel>

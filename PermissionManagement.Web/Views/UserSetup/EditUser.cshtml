@@ -7,215 +7,349 @@
 }
 
 @section MainContent {
-
     @using (Html.BeginForm())
     {
         @Html.AntiForgeryToken()
-
-    <div class="row">
-
-        <div class="form-horizontal col-md-12 col-sm-8 col-xs-12 col-xs-offset-0">
-            <h1 class="page-head-line">Edit User</h1>
-            <p>
-                @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.View);
-                  if (status)
-                  {
-                    @Html.ActionLink("Back to List", "ListUser")
-                  }
+        <div class="row">
+            <div class="form-horizontal col-md-12 col-xs-12 col-xs-offset-0">
+                <h1 class="page-head-line">Edit User</h1>
+                <p>
+                    @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.View);
+                    if (status)
+                    {
+                        @Html.ActionLink("Back to List", "ListUser")
+                    }
+                    }
+                </p>
+                <hr />
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @{var status6 = Access.IsFormEditable(Constants.Modules.UserSetup, Model.ApprovalStatus) ? "" : "readonly";
+                var toggleControls = status6;//Access.CanEdit(Constants.Modules.UserSetup, Model.InitiatedBy, Model.ApprovalStatus, Model.IsDeleted) ? "" : "readonly";
                 }
-            </p>
-            <hr />
-            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-            
-            @{var status6 = Access.IsFormEditable(Constants.Modules.UserSetup, Model.ApprovalStatus) ? "" : "readonly";
-            }
-            <div class="@status6">
-                        
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.Username, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.EditorFor(model => model.Username, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = true } })
-                            @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                @Html.Hidden("hdnStatus6", @toggleControls)
+                <div class="@status6">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Username, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Username, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = true } })
+                                    @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.Initial, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.DropDownList("Initial", new SelectList(Html.StaffInitialDropDownList(), "StaffInitialID", "Description", Model.Initial), new { id = "Initial", @class = "form-control input-sm" })
-                            @Html.ValidationMessageFor(model => model.Initial, "", new { @class = "text-danger" })
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Initial, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.DropDownList("Initial", new SelectList(Html.StaffInitialDropDownList(), "StaffInitialID", "Description", Model.Initial), new { id = "Initial", @class = "form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.Initial, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
+
                     </div>
-                </div>
 
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.AccountType, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.DropDownList("AccountType", new SelectList(Html.AccountTypeDropDownList(false), "AccountTypeID", "Description", Model.AccountType), new { id = "Account Type", @class = "form-control input-sm", @disabled = "disabled" })
-                            @Html.ValidationMessageFor(model => model.AccountType, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.AccountType, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.DropDownList("AccountType", new SelectList(Html.AccountTypeDropDownList(false), "AccountTypeID", "Description", Model.AccountType), new { id = "Account Type", @class = "form-control input-sm", @disabled = "disabled" })
+                                    @Html.ValidationMessageFor(model => model.AccountType, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.FirstName, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { @class = "form-control input-sm" } })
-                            @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "text-danger" })
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.FirstName, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                    @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
+
+
                     </div>
-                </div>
 
-
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.LastName, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.EditorFor(model => model.LastName, new { htmlAttributes = new { @class = "form-control input-sm" } })
-                            @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.LastName, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.LastName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                    @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
-                            @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                    @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
+
                     </div>
-                </div>
 
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.Telephone, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.EditorFor(model => model.Telephone, new { htmlAttributes = new { @class = "form-control input-sm" } })
-                            @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Telephone, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.EditorFor(model => model.Telephone, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                    @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
                         </div>
+                        @if (Model.AccountType == Constants.AccountType.LocalLocal)
+                        {
+                            <div class="col-md-6 col-sm-6 col-xs-12">
+                                <div class="form-group">
+                                    @Html.LabelFor(model => model.BranchID, htmlAttributes: new { @class = "control-label col-md-2" })
+                                    <div class="col-md-10">
+                                        @Html.EditorFor(model => model.BranchID, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                        @Html.ValidationMessageFor(model => model.BranchID, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        }
                     </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        @Html.LabelFor(model => model.RoleId, htmlAttributes: new { @class = "control-label col-md-2" })
-                        <div class="col-md-10">
-                            @Html.DropDownList("RoleId", new SelectList(Html.RoleDropDownList(), "RoleId", "RoleName", Model.UserRole.RoleId != Guid.Empty ? Model.UserRole.RoleId.ToString() : Guid.Empty.ToString()), new { id = "RoleId", @class = "form-control input-sm" })
-                            @Html.ValidationMessageFor(model => model.UserRole.RoleId, "", new { @class = "text-danger" })
-                        </div>
-                    </div>
-                </div>
-            </div>
-            </div>
-
-            <div class="row">
-                @{var status5 = Access.IsMakerCheckerNotInitiatorOrChecker(Constants.Modules.UserSetup, Model.InitiatedBy);
-                if (status5)
-                {
-
-                    <div class="col-md-6 col-sm-6 col-xs-12">
-                        <div class="form-group">
-                            @Html.LabelFor(model => model.ApprovalStatus, htmlAttributes: new { @class = "control-label col-md-2" })
-                            <div class="col-md-10">
-                                @Html.DropDownList("ApprovalStatus", new SelectList(Html.ApprovalStatusDropdownList(Model.ApprovalStatus), "ApprovalStatusID", "Description", Model.ApprovalStatus), new { id = "Approval  Status", @class = "form-control input-sm", onchange = "GetComment(this);" })
-                                @Html.ValidationMessageFor(model => model.ApprovalStatus, "", new { @class = "text-danger" })
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.RoleId, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.DropDownList("RoleId", new SelectList(Html.RoleDropDownList(), "RoleId", "RoleName", Model.UserRole.RoleId != Guid.Empty ? Model.UserRole.RoleId.ToString() : Guid.Empty.ToString()), new { id = "RoleId", @class = "form-control input-sm" })
+                                    @Html.ValidationMessageFor(model => model.UserRole.RoleId, "", new { @class = "text-danger" })
+                                </div>
                             </div>
                         </div>
                     </div>
-                }
-                }
-            </div>
 
-            <div class="row">
-            @{var status7 = Access.CanEdit(Constants.Modules.UserSetup, Model.InitiatedBy, Model.ApprovalStatus, Model.IsDeleted);
-            if (status7)
-            {
-              <div class="col-md-6 col-sm-6 col-xs-12">
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <input type="submit" value="Submit" class="form-control btn-primary" />
+                </div>
+
+                <div class="row">
+                    @{var status5 = Access.IsMakerCheckerNotInitiatorOrChecker(Constants.Modules.UserSetup, Model.InitiatedBy);
+                    if (status5)
+                    {
+                        <div class="col-md-6 col-sm-6 col-xs-12">
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.ApprovalStatus, htmlAttributes: new { @class = "control-label col-md-2" })
+                                <div class="col-md-10">
+                                    @Html.DropDownList("ApprovalStatus", new SelectList(Html.ApprovalStatusDropdownList(Model.ApprovalStatus), "ApprovalStatusID", "Description", Model.ApprovalStatus), new { id = "Approval  Status", @class = "form-control input-sm", onchange = "GetComment(this);" })
+                                    @Html.ValidationMessageFor(model => model.ApprovalStatus, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    }
+                </div>
+
+                <div id="status">
+                    <div class="row">
+                        <div class="col-md-6 com-sm-6 col-xs-12">
+                            @if (Model.AccountExpiryDate <= DateTime.Now || Model.IsAccountExpired)
+                            {
+                                <div class="form-group">
+                                    <div class="col-md-2">
+                                        @Html.EditorFor(model => model.IsAccountExpired, new { htmlAttributes = new { id = "isAccountExpired" } })
+                                    </div>
+                                    <div class="col-md-10">
+                                        <label>Account Expired</label> (Uncheck to Extend)
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="col-md-6 com-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    @if (Model.AccountExpiryDate != null)
+                                    {
+                                        if (@Model.AccountExpiryDate < DateTime.Now)
+                                        { <label>Account expired on: </label> ;
+                                        }
+                                        else
+                                        { <label>Account expires on : </label> ;
+                                        }
+                                    }
+                                </div>
+                                <div class="col-md-8">
+                                    @if (Model.AccountExpiryDate != null)
+                                    {
+                                        @Model.AccountExpiryDate.Value.Date.ToShortDateString();
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (Model.IsDormented)
+                    {
+                        <div class="row">
+                            <div class="col-md-6 com-sm-6 col-xs-12">
+                                <div class="form-group">
+                                    <div class="col-md-2">
+                                        @Html.EditorFor(model => model.IsDormented, new { htmlAttributes = new { id = "isAccountDormented" } })
+                                    </div>
+                                    <div class="col-md-10">
+                                        <label> Dormented </label> (Un-Check to Un-Dorment)
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 com-sm-6 col-xs-12">
+                                <div class="form-group">
+                                    <div class="col-sm-4">
+                                        <label>Created On :</label>
+                                    </div>
+                                    <div class="col-sm-2 pull-left">@Model.CreationDate.Value.Date.ToShortDateString()</div>
+
+                                    @if (Model.LastLogInDate == null)
+                                    {
+                                        <div class="col-sm-5">
+                                            <label class="pull-right">User Never Logged in</label>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="col-sm-3">
+                                            <label class="pull-right">Last Login :</label>
+                                        </div>
+                                        <div class="col-sm-3">
+                                            @Model.LastLogInDate.Value.Date.ToShortDateString()
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                    <div class="row">
+                        <div class="col-md-6 com-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <div class="col-md-2">
+                                    @Html.EditorFor(model => model.IsLockedOut, new { htmlAttributes = new { id = "isAccountLocked" } })
+                                </div>
+                                <div class="col-md-10">
+                                    @if (Model.IsLockedOut)
+                                    {
+                                        <label> Lock </label>
+                                    }
+                                    else
+                                    {
+                                        <label> Unlocked </label><span>(Check to lock the user)</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 com-sm-6 col-xs-12">
+                            <div class="form-group">
+                                <div class="col-md-2">
+                                    @Html.EditorFor(model => model.IsDeleted, new { htmlAttributes = new { id = "isAccountDeleted" } })
+                                </div>
+                                <div class="col-md-10">
+                                    <label> Delete User </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            }
-         }
 
-            @Html.Hidden("RowVersionNo2", Model.RowVersionNo2.ToString())
-            @Html.Hidden("InitiatedBy", Model.InitiatedBy.ToString())
-            @Html.Hidden("ApprovedBy", Model.ApprovedBy)
-            @Html.Hidden("LastApprovalStatus", Model.ApprovalStatus.ToString())
-                
-            <br /><hr />
-            @if (status)
-            {
-                @Html.ActionLink("Back to List", "ListUser")
-            }
+                @if (true)
+                {
+                    <div class="row">
+                        @{var status7 = Access.CanEdit(Constants.Modules.UserSetup, Model.InitiatedBy, Model.ApprovalStatus, Model.IsDeleted);
+                        if (status7)
+                        {
+                            <div class="col-md-12 col-xs-12">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <input type="submit" value="Submit" class="form-control btn-primary" />
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        }
+                        @Html.Hidden("RowVersionNo2", Model.RowVersionNo2.ToString())
+                        @Html.Hidden("InitiatedBy", Model.InitiatedBy.ToString())
+                        @Html.Hidden("ApprovedBy", Model.ApprovedBy)
+                        @Html.Hidden("LastApprovalStatus", Model.ApprovalStatus.ToString())
+                        <br />
+
+                    </div>
+                    <hr />
+                }
+                @if (status)
+                {
+                    @Html.ActionLink("Back to List", "ListUser")
+                }
             </div>
         </div>
-      </div>
-     <div class="row">
-        <div class="col-md-12 col-sm-8 col-xs-12 col-xs-offset-0">
-            <div id="dialog4" tabindex="-1" role="dialog" aria-labelledby="dialog4Label" aria-hidden="true" class="modal fade">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                            <h4 class="modal-title" id="dialog4Label">Enter Comment</h4>
-                        </div>
-                        <div class="modal-body">
-                            <p>Please enter your comment for the approval or rejection.</p>
-                            <div class="row">
-                                <div class="col-md-10 col-sm-6 col-xs-12">
-                                    <div class="form-group">
-                                        <label class="control-label col-md-2" for="ApproverComment">Approver Comment</label>
-                                        <div class="col-md-10">
-                                            <input class="form-control input-sm text-box single-line" id="ApproverComment" name="ApproverComment" type="text" value="" />
-                                            <span class="field-validation-valid text-danger" data-valmsg-for="ApproverComment" data-valmsg-replace="true"></span>
+        <div class="row">
+            <div class="col-md-12 col-sm-8 col-xs-12 col-xs-offset-0">
+                <div id="dialog4" tabindex="-1" role="dialog" aria-labelledby="dialog4Label" aria-hidden="true" class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="dialog4Label">Enter Comment</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Please enter your comment for the approval or rejection.</p>
+                                <div class="row">
+                                    <div class="col-md-10 col-sm-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2" for="ApproverComment">Approver Comment</label>
+                                            <div class="col-md-10">
+                                                <input class="form-control input-sm text-box single-line" id="ApproverComment" name="ApproverComment" type="text" value="" />
+                                                <span class="field-validation-valid text-danger" data-valmsg-for="ApproverComment" data-valmsg-replace="true"></span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>  
-     }
- }
- @section scripts {
+    }
+}
+@section scripts {
     <script type="text/javascript">
 
-        function GetComment(optionList) {
+        $(document).ready(function ()
+        {
+            EnableOrDisable('isAccountDormented', document.getElementById('hdnStatus6').value);
+            EnableOrDisable('isAccountExpired', document.getElementById('hdnStatus6').value);
+            EnableOrDisable('isAccountLocked', document.getElementById('hdnStatus6').value);
+            EnableOrDisable('isAccountDeleted', document.getElementById('hdnStatus6').value);
 
-            if (optionList.value == "Rejected" || optionList.value == "RejectedForCorrection") {
+        })
+        function GetComment(optionList)
+        {
+
+            if (optionList.value == "Rejected" || optionList.value == "RejectedForCorrection")
+            {
                 $('#dialog4').modal('show');
             }
-        }  
+        }
 
-        //$('#dialog4').on('show.bs.modal', function (e) {
-       // });
- 
-   </script>
+        function EnableOrDisable(control, status)
+        {
+            if (status == 'readonly')
+            {
+                var ctrl = document.getElementById(control);
+                if (ctrl != null) { ctrl.setAttribute('onclick', 'return false;'); }
+            }
+        }
+    </script>
 }

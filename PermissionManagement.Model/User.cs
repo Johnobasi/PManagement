@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Web;
 using System.Xml.Serialization;
 
 namespace PermissionManagement.Model
 {
-   public class User
+    public class User
     {
         private string _firstName;
         private string _lastName;
@@ -27,7 +26,7 @@ namespace PermissionManagement.Model
         private string _approvalStatus;
         private long _approvalLogID;
         private bool _isDeleted;
-
+       
         public Guid RoleId { get; set; }
 
         private int _badPasswordCount;
@@ -77,7 +76,7 @@ namespace PermissionManagement.Model
             get { return _isLockedOut; }
             set { _isLockedOut = value; }
         }
-       [RegularExpression("^\\+{0,1}[0-9]*$", ErrorMessage = "Telephone number must be numeric")]
+        [RegularExpression("^\\+{0,1}[0-9]*$", ErrorMessage = "Telephone number must be numeric")]
         public string Telephone
         {
             get { return _telephone; }
@@ -149,18 +148,22 @@ namespace PermissionManagement.Model
             get { return _isDeleted; }
             set { _isDeleted = value; }
         }
-   
+
         public bool IsFirstLogIn { get; set; }
 
         public Int64 RowVersionNo2 { get; set; }
         public string InitiatedBy { get; set; }
         public string ApprovedBy { get; set; }
-        
+
         [Display(Name = "Staff Position")]
         public string StaffPosition { get; set; }
 
         [Display(Name = "Title")]
         public string Initial { get; set; }
+
+        public bool IsDormented { get; set; }
+        public DateTime? AccountExpiryDate { get; set; }
+        public bool IsAccountExpired { get; set; }
     }
 
     public class UserListingResponse
@@ -207,6 +210,19 @@ namespace PermissionManagement.Model
     {
         public string ApprovalStatusID { get; set; }
         public string Description { get; set; }
+    }
+    public class ExportDto
+    {
+        public string UserRole { get; set; }
+        public string Username { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public bool IsLockedOut { get; set; }
+        public string AccountType { get; set; }
+        public string ApprovalStatus { get; set; }
+        public bool IsDeleted { get; set; }
+        public string InitiatedBy { get; set; }
     }
 
 }

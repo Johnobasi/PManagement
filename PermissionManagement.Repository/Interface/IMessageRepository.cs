@@ -1,8 +1,6 @@
-﻿using System;
+﻿using PermissionManagement.Model;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PermissionManagement.Model;
 
 namespace PermissionManagement.Repository
 {

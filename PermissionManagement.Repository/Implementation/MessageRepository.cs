@@ -1,10 +1,10 @@
-﻿using System;
+﻿using PermissionManagement.Model;
+using PermissionManagement.Utility;
+using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Text;
-using PermissionManagement.Model;
-using System.Data;
-using PermissionManagement.Utility;
 using Dapper;
 
 namespace PermissionManagement.Repository

@@ -90,7 +90,6 @@
         mainApp.slide_show();
         mainApp.reviews_fun();
         mainApp.wizard_fun();
-        jQuery.validator.methods["date"] = function (value, element) { return true; }
-       
+        jQuery.validator.methods["date"] = function (value, element) { return true; }       
     });
 }(jQuery));

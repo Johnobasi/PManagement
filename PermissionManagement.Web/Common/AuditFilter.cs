@@ -1,17 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using System.Web.Mvc;
-using System.IO.Compression;
-using System.Net;
-using System.Net.Http;
-using System.Text;
+﻿using DryIoc;
 using PermissionManagement.Model;
-using PermissionManagement.Utility;
 //using PermissionManagement.IoC;
 using PermissionManagement.Services;
-using DryIoc;
+using PermissionManagement.Utility;
+using System;
+using System.Web;
+using System.Web.Mvc;
 
 namespace PermissionManagement.Web
 {
@@ -35,7 +29,7 @@ namespace PermissionManagement.Web
         {
             logLevel = AuditLogLevel.LevelZero;
         }
-        public AuditFilter(AuditLogLevel level)
+        public AuditFilter(AuditLogLevel level, HttpVerbs action = HttpVerbs.Get)
         {
             logLevel = level;
         }
@@ -48,10 +42,18 @@ namespace PermissionManagement.Web
 
         public override void OnActionExecuted(ActionExecutedContext filterContext)
         {
-            if (Helper.GetLogLevel() >= (int)logLevel)
+            var context = HttpContext.Current;
+            int configuredLogLevel = -1;
+            if (!(int.TryParse(((IContainer)context.Application["container"]).Resolve<IPortalSettingsService>()
+                                .GetSettingByKey(Constants.PortalSettingsKeysConstants.AUDITLOGLEVEL).Value
+                                , out configuredLogLevel)))
             {
-                var context = HttpContext.Current;
+                configuredLogLevel = Helper.GetLogLevel();
+            }
+            if (configuredLogLevel >= (int)logLevel)
+            {
                 var timeNow = Helper.GetLocalDate();
+                var action = context.Request.RequestType;
                 var auditMessage = filterContext.HttpContext.Items["AuditOperationMessage"] as string;
                 if (string.IsNullOrEmpty(auditMessage))
                 {
@@ -86,7 +88,8 @@ namespace PermissionManagement.Web
                     AuditPage = context.Request.RawUrl,
                     AuditType = "Audit Trail", //this.GetType().Name
                     AuditMessage = auditMessage,
-                    AuditData = auditData
+                    AuditData = auditData,
+                    AuditHTTPAction = context.Request.RequestType
                 };
 
                 var auditService = ((IContainer)context.Application["container"]).Resolve<IAuditService>();

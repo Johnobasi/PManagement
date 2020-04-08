@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PermissionManagement.Model;
+﻿using PermissionManagement.Model;
 using PermissionManagement.Repository;
-using PermissionManagement.Validation;
 using PermissionManagement.Utility;
+using PermissionManagement.Validation;
+using System;
 
 namespace PermissionManagement.Services
 {
@@ -150,6 +147,21 @@ namespace PermissionManagement.Services
                 }
             }
 
+            if (userToValidate.AccountType == Constants.AccountType.LocalLocal)
+            {
+                if (!string.IsNullOrWhiteSpace(userToValidate.BranchID))
+                {
+                    int branchID = 0;
+                    if (!int.TryParse(userToValidate.BranchID,out branchID))
+                    {
+                        v.Errors.Add(new ValidationError("BranchID.InvalidBranchIDError", userToValidate.BranchID, "Branch ID can contain only numbers"));
+                    }
+                }
+                else
+                {
+                    v.Errors.Add(new ValidationError("BranchID.InvalidBranchIDError", userToValidate.BranchID, "Branch ID cannot be empty"));
+                }
+            }
             var validationRepository = otherData as IDatastoreValidationRepository;
             if (validationRepository != null)
             {

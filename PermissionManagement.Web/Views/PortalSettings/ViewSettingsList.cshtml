@@ -1,0 +1,79 @@
+﻿@model IEnumerable<PermissionManagement.Model.PortalSetting>
+
+@{
+    ViewBag.Title = "List Portal Settings";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section MainContent {
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/jqueryval")
+    <div class="table-responsive page-head-line">
+        <div class="col-md-9 align-text-bottom ">
+            <br /> Portal Setting
+        </div>
+        <div class="col-md-3 align">
+            @using (Html.BeginForm("PortalSettingsListExcelDownload", "PortalSettings", FormMethod.Post))
+            {
+                @*<button class="btn btn-default pull-right tooltips" type="submit" name="ExportExcel" glose="Export to Excel" onclick="return GetData();" id="ExportExcel"> <span class="glyphicon glyphicon-save "></span> Save as Excel</button>*@
+                <button class="btn btn-default pull-right tooltipBottomLeft" type="submit" name="ExportExcel" tooltip="Export to Excel" onclick="return GetData();" id="ExportExcel"><span class="fa fa-arrow-down">&nbsp;</span><span class="fa fa-file-excel-o"></span></button>
+            }
+            @*@using (Html.BeginForm("PortalSettingsListWordDownload", "PortalSettings", FormMethod.Post))
+            {
+                <button class="btn btn-default pull-right tooltipBottomLeft" type="submit" name="ExportWord" tooltip="Export to Word" onclick="return GetData();" id="ExportWord"><span class="fa fa-arrow-down">&nbsp;</span><span class="fa fa-file-word-o"></span></button>
+            }*@
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <p>
+                @Html.ActionLink("Add Setting", "AddSettings")
+            </p>
+            @using (Html.BeginForm())
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped table-hover display" cellspacing="0">
+                        <tr>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Key)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.Value)
+                            </th>
+                            <th>Edit</th>
+                            @*<th>Delete</th>*@
+                        </tr>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Key)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(modelItem => item.Value)
+                                </td>
+                                <td>
+                                    @Html.ActionLink("Edit", "EditSettings", new { item.PSID, item.Key })
+                                </td>
+                                @*   <td>
+                                        @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+                                    </td>*@
+                            </tr>
+                        }
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+    <hr />
+    <p>
+        @Html.ActionLink("Add Setting", "AddSettings")
+    </p>
+
+}
+
+

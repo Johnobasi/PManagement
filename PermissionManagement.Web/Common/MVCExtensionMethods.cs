@@ -1,27 +1,18 @@
-﻿using System.Web.Mvc;
-using PermissionManagement.Validation;
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using PermissionManagement.Model;
-using System.Web;
-using System.Text;
-using System.Linq;
-using System.Collections;
-using System.Web.Routing;
-using System.Configuration;
-using System.Reflection;
-using System.Data;
-using System.Web.Security;
-using System.Xml.Linq;
-using System.Web.Mvc.Html;
-using System.Text.RegularExpressions;
-using System.Threading;
-using PermissionManagement.Utility;
+﻿using DataTables.Mvc;
 //using PermissionManagement.IoC;
 using DryIoc;
+using PermissionManagement.Model;
 using PermissionManagement.Services;
-using DataTables.Mvc;
+using PermissionManagement.Utility;
+using PermissionManagement.Validation;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Web;
+using System.Web.Mvc;
 
 namespace PermissionManagement.Web
 {
@@ -54,7 +45,8 @@ namespace PermissionManagement.Web
 
             if (menuList == null)
             {
-                menuList = MenuBuilder.GetMenu(id.Roles, context.Request.Url.ToString());
+                //menuList = MenuBuilder.GetMenu(id.Roles,id.AccountType, context.Request.Url.ToString());
+                menuList = MenuBuilder.GetMenu(id, context.Request.Url.ToString());
                 cacheService.Add(string.Format("{0}-Menu-{1}", id.Roles, Constants.General.RoleNames), menuList);
             }
             var menuHtml = MenuBuilder.BuildII(menuList, context.Request.Url.ToString());
@@ -155,7 +147,7 @@ namespace PermissionManagement.Web
             return roleList;
         }
 
-       #region Initials drop down list
+        #region Initials drop down list
         public static IEnumerable<StaffInitialDTO> StaffInitialDropDownList(this HtmlHelper htmlHelper)
         {
             var context = HttpContext.Current;
@@ -232,7 +224,7 @@ namespace PermissionManagement.Web
             {
                 list.Add(new ApprovalStatusDTO() { ApprovalStatusID = Constants.ApprovalStatus.Approved, Description = Constants.ApprovalStatus.Approved });
                 list.Add(new ApprovalStatusDTO() { ApprovalStatusID = Constants.ApprovalStatus.RejectedForCorrection, Description = Constants.ApprovalStatus.RejectedForCorrection });
-                list.Add(new ApprovalStatusDTO() { ApprovalStatusID = Constants.ApprovalStatus.Rejected, Description = Constants.ApprovalStatus.Rejected });        
+                list.Add(new ApprovalStatusDTO() { ApprovalStatusID = Constants.ApprovalStatus.Rejected, Description = Constants.ApprovalStatus.Rejected });
             }
             else if (currentStatus == Constants.ApprovalStatus.RejectedForCorrection)
             {
@@ -241,7 +233,7 @@ namespace PermissionManagement.Web
             else if (currentStatus == Constants.ApprovalStatus.Rejected)
             {
                 list.Add(new ApprovalStatusDTO() { ApprovalStatusID = Constants.ApprovalStatus.Rejected, Description = Constants.ApprovalStatus.Rejected });
-            }   
+            }
             return list;
         }
 
@@ -273,7 +265,7 @@ namespace PermissionManagement.Web
         //    return userList;
         //}
 
-       // #endregion
+        // #endregion
 
         public static string GetLink(this HtmlHelper htmlHelper, string displayText, string subPathOffRoot, string resourceRelativeUri)
         {

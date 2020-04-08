@@ -40,6 +40,9 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Mvc">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.7\lib\net45\System.Web.Mvc.dll</HintPath>
+    </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,8 +52,11 @@
   <ItemGroup>
     <Compile Include="AuthCookie.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="ConstantsPortalSettings.cs" />
     <Compile Include="Cookie.cs" />
     <Compile Include="Crypto.cs" />
+    <Compile Include="DateTimeHelper.cs" />
+    <Compile Include="Export.cs" />
     <Compile Include="Helper.cs" />
     <Compile Include="Identity.cs" />
     <Compile Include="MailSettings.cs" />
@@ -59,7 +65,9 @@
     <Compile Include="Principal.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RegularExpressions.cs" />
+    <Compile Include="ReportsConstants.cs" />
     <Compile Include="SecurityConfig.cs" />
+    <Compile Include="StringChipher.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

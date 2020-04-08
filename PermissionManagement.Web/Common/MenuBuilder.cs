@@ -1,25 +1,9 @@
-﻿using Microsoft.VisualBasic;
-using System;
+﻿using PermissionManagement.Utility;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Xml.Linq;
-using System.Diagnostics;
-using System.Collections.Specialized;
-using System.Configuration;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Web;
-using System.Web.Caching;
-using System.Web.SessionState;
-using System.Web.Security;
-using System.Web.Profile;
-using System.Web.UI;
-using System.Web.UI.WebControls;
-using System.Web.UI.WebControls.WebParts;
-using System.Web.UI.HtmlControls;
-using PermissionManagement.Utility;
 
 namespace PermissionManagement.Web
 {
@@ -40,17 +24,19 @@ namespace PermissionManagement.Web
                 MenuLiClass = menuLiClass,
                 MenuUlClass = menuUlClass,
                 MenuUrl = menuUrl,
-                Parent = parent
+                Parent = parent,
+                Id = "mnu" + Regex.Replace(displayName, @"\s+", "")
             };
         }
-        public static IList<Menu> GetMenu(string userRole, string currentRequestPath)
+        public static IList<Menu> GetMenu(Identity userContext, string currentRequestPath)
         {
-            var menuList = BuildMenu(userRole, currentRequestPath);
+            var menuList = BuildMenu(userContext.Roles, userContext.AccountType, currentRequestPath);
             return menuList;
         }
 
-        public static IList<Menu> BuildMenu(string userRole, string currentRequestPath)
+        public static IList<Menu> BuildMenu(string userRole, string accountType, string currentRequestPath)
         {
+
             IList<Menu> menuList = new List<Menu>();
             var menuItem = new Menu();
             var childItem = new Menu();
@@ -69,14 +55,6 @@ namespace PermissionManagement.Web
                 menuList.Add(childItem);
             }
 
-            if (Access.IsAccessRightInRoleProfile(Constants.Modules.Report, Constants.AccessRights.View))
-            {
-                menuItem = MakeMenu("Reports", true, false, "#", "fa fa-building-o fa-fw", "nav nav-second-level", null);
-                menuList.Add(menuItem);
-                childItem = MakeMenu("Reports List", false, true, "/Reports/ListReports", "fa fa-list fa-fw", "nav nav-second-level", menuItem);
-                menuList.Add(childItem);
-            }
-
             if (Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View))
             {
                 menuItem = MakeMenu("Audit Trail", true, false, "#", "fa fa-building-o fa-fw", "nav nav-second-level", null);
@@ -88,12 +66,35 @@ namespace PermissionManagement.Web
             }
             if (Helper.IsAuthenticated())
             {
-                menuItem = MakeMenu("My Profile", true, false, "#", "fa fa-building-o fa-fw", "nav nav-second-level", null);
+                if (!string.IsNullOrWhiteSpace(accountType))
+                {
+                    if (!string.Equals(accountType.ToLower(), Constants.AccountType.ADLocal.ToLower()) &&
+                        !string.Equals(accountType.ToLower(), Constants.AccountType.ADFinacle.ToLower()))
+                    {
+                        menuItem = MakeMenu("My Profile", true, false, "#", "fa fa-building-o fa-fw", "nav nav-second-level", null);
+                        menuList.Add(menuItem);
+                        childItem = MakeMenu("My Details", false, true, "/MyProfile", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
+                        menuList.Add(childItem);
+                        childItem = MakeMenu("Change Password", false, true, "/MyProfile/ChangePassword", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
+                        menuList.Add(childItem);
+                    }
+                }
+            }
+
+            if (Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.View))
+            {
+                GenerateSiteSettingsMenu(menuList);
+            }
+
+            if (Access.IsAccessRightInRoleProfile(Constants.Modules.Reports, Constants.AccessRights.View))
+            {
+                menuItem = MakeMenu("Reports", true, false, "#", "fa fa-building-o fa-fw", "nav nav-second-level", null);
                 menuList.Add(menuItem);
-                childItem = MakeMenu("My Details", false, true, "/MyProfile", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
+                childItem = MakeMenu("Exceptions Report", false, true, "/Reports/ExceptionList", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
                 menuList.Add(childItem);
-                childItem = MakeMenu("Change Password", false, true, "/MyProfile/ChangePassword", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
+                childItem = MakeMenu("Users Report", false, true, "/Reports/UsersList", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
                 menuList.Add(childItem);
+
             }
 
             return menuList;
@@ -115,7 +116,7 @@ namespace PermissionManagement.Web
 
                 if (level.Count() > 0)
                 {
-                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\">", menuItem.MenuUlClass));
+                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\" id='ul{1}'>", menuItem.MenuUlClass, menuItem.Id));
                     string html = BuildLevelII(menuList, level, currentRequestPath);
                     menuHtml.AppendLine(html);
                     menuHtml.AppendLine("</ul>");
@@ -143,7 +144,7 @@ namespace PermissionManagement.Web
 
                 if (level2.Count() > 0)
                 {
-                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\">", menuItem.MenuUlClass));
+                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\" id='ul{1}'>", menuItem.MenuUlClass, menuItem.Id));
                     string html = BuildLevelII(menuList, level2, currentRequestPath);
                     menuHtml.AppendLine(html);
                     menuHtml.AppendLine("</ul>");
@@ -161,7 +162,7 @@ namespace PermissionManagement.Web
             if (menuItem.DisplayName == "Divider")
                 return "<li class=\"divider\">";
 
-            return "<li>";
+            return "<li id='li" + menuItem.Id + "'>";
         }
 
         private static string GetLinkII(Menu menuItem, string currentRequestPath)
@@ -176,9 +177,9 @@ namespace PermissionManagement.Web
                 menuUrl = "#";
             }
             //string format = "<a href=\"{0}\" title=\"{1}\">{3}{2}{4}</a>";
-            string format = "<a href=\"{0}\" title=\"{1}\"><i class=\"{3}\"></i>{2}{4}</a>";
+            string format = "<a href=\"{0}\" title=\"{1}\" id=\"href{5}\"><i class=\"{3}\"></i>{2}{4}</a>";
             //return string.Format(format, menuUrl, menuItem.DisplayName, menuItem.DisplayName,  menuItem.Parent != null ? string.Empty : string.Format("<i class=\"{0}\"></i>", menuItem.MenuLiClass), menuItem.HasChildren ? "<span class=\"fa arrow\"></span>" : string.Empty);
-            return string.Format(format, menuUrl, menuItem.DisplayName, menuItem.DisplayName, menuItem.MenuLiClass, menuItem.HasChildren ? "<span class=\"fa arrow\"></span>" : string.Empty);
+            return string.Format(format, menuUrl, menuItem.DisplayName, menuItem.DisplayName, menuItem.MenuLiClass, menuItem.HasChildren ? "<span class=\"fa arrow\"></span>" : string.Empty, menuItem.Id);
 
         }
 
@@ -198,7 +199,7 @@ namespace PermissionManagement.Web
 
                 if (level.Count() > 0)
                 {
-                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\">", menuItem.MenuUlClass));
+                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\" id='ul{1}'>", menuItem.MenuUlClass, menuItem.Id));
                     string html = BuildLevelIII(menuList, level, currentRequestPath);
                     menuHtml.AppendLine(html);
                     menuHtml.AppendLine("</ul>");
@@ -226,7 +227,7 @@ namespace PermissionManagement.Web
 
                 if (level2.Count() > 0)
                 {
-                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\">", menuItem.MenuUlClass));
+                    menuHtml.AppendLine(string.Format("<ul class=\"{0}\" id='ul{1}'>", menuItem.MenuUlClass, menuItem.Id));
                     string html = BuildLevelIII(menuList, level2, currentRequestPath);
                     menuHtml.AppendLine(html);
                     menuHtml.AppendLine("</ul>");
@@ -273,6 +274,17 @@ namespace PermissionManagement.Web
                 string format = "<a href=\"{0}\" title=\"{1}\">{2}</a>";
                 return string.Format(format, menuUrl, menuItem.DisplayName, menuItem.DisplayName);
             }
+        }
+
+        private static void GenerateSiteSettingsMenu(IList<Menu> menuList)
+        {
+            //   var menuItem = new Menu();
+            var childItem = new Menu();
+
+            Menu menuItem = MakeMenu("Portal Settings", true, false, "#", "fa fa-cogs", "nav nav-second-level", null);
+            menuList.Add(menuItem);
+            menuList.Add(MakeMenu("View Settings", false, true, "/PortalSettings/ViewSettingsList", "fa fa-list-ul", "nav nav-second-level", menuItem));
+            menuList.Add(MakeMenu("Add Settings", false, true, "/PortalSettings/AddSettings", "fa fa-cog", "nav nav-second-level", menuItem));
         }
     }
 }

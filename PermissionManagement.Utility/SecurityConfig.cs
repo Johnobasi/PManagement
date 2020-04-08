@@ -1,16 +1,7 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using System.Xml.Linq;
+﻿using System;
 using System.Configuration;
+using System.Web;
 using System.Xml;
-using System.Text;
-using System.Xml.XPath;
 namespace PermissionManagement.Utility
 {
 
@@ -237,8 +228,8 @@ namespace PermissionManagement.Utility
                 this.DomainName = domain;
                 this.Timeout = timeout == null ? default_timeout : int.Parse(timeout);
                 this.SlidingExpiration = slidingExpiration;
-                this.PasswordHashed = passwordHashed;
-                this.CookieOnlyCheck = cookieOnlyCheck;
+                this.PasswordHashed = true;    //passwordHashed;  This is a secure environment, password is always hashed, it is overriding here even if set to false in config.
+                this.CookieOnlyCheck = false;  //cookieOnlyCheck; This is a secure environment, cookie only check is not sufficient, it is overriding here even if set to true in config.
                 this.MaximumPasswordRetries = maximumPasswordRetries;
                 this.Enable2FA = enable2FA;
                 this.ExemptLocalAccountFrom2FA = exemptlocalaccountfrom2fa;

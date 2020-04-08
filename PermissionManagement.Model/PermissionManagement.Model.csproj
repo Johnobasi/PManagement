@@ -49,16 +49,25 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllUserListingResponse.cs" />
+    <Compile Include="AllUserListModel.cs" />
     <Compile Include="AuditTrail.cs" />
     <Compile Include="AuthenticationDataDto.cs" />
     <Compile Include="ChangePasswordDto.cs" />
+    <Compile Include="ExpiredUserListingDto.cs" />
+    <Compile Include="ExpiredUserListingResponse.cs" />
     <Compile Include="IdentityPrimaryKey.cs" />
     <Compile Include="ExceptionLog.cs" />
     <Compile Include="LogInDto.cs" />
     <Compile Include="Menu.cs" />
     <Compile Include="MessageItem.cs" />
     <Compile Include="PagerItems.cs" />
+    <Compile Include="PasswordHistoryModel.cs" />
+    <Compile Include="PortalSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReportsExceptionDto.cs" />
+    <Compile Include="ReportsExceptionListingResponse.cs" />
+    <Compile Include="ReportTypeEnum.cs" />
     <Compile Include="Role.cs" />
     <Compile Include="SequenceHandler.cs" />
     <Compile Include="User.cs" />

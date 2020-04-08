@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PermissionManagement.Model;
+﻿using PermissionManagement.Model;
 using PermissionManagement.Repository;
-using PermissionManagement.Utility;
-using PermissionManagement.Validation;
-using System.Configuration;
-using System.Data; 
+using System;
+using System.Collections.Generic;
 
 namespace PermissionManagement.Services
 {
     public class AuditService : IAuditService
-     {
+    {
         private readonly IAuditRepository repositoryInstance;
 
         public AuditService(IAuditRepository repository)
@@ -35,22 +29,22 @@ namespace PermissionManagement.Services
         //    //}
         //}
 
-       //private void Audit(AuditTrail log)
-       // {
-       //     var status = true;
-                          
-       //         AuditLog(new AuditTrail()
-       //             {
-       //                 ActionDateTime = Helper.GetLocalDate(),
-       //                 AuditAction = string.Format("Email Sending Error - {0}"),
-       //                 AuditMessage = MessageText,
-       //                 AuditPage = "MailSender",
-       //                 AuditType = "MailSender",
-       //                 AuditVersion = "MailSender 1.0",
-       //                 LoggedInUser = Helper.GetLoggedInUser(),
-       //                 ClientIPAddress = Helper.GetIPAddress()
-       //             }, true);
-       //  }
+        //private void Audit(AuditTrail log)
+        // {
+        //     var status = true;
+
+        //         AuditLog(new AuditTrail()
+        //             {
+        //                 ActionDateTime = Helper.GetLocalDate(),
+        //                 AuditAction = string.Format("Email Sending Error - {0}"),
+        //                 AuditMessage = MessageText,
+        //                 AuditPage = "MailSender",
+        //                 AuditType = "MailSender",
+        //                 AuditVersion = "MailSender 1.0",
+        //                 LoggedInUser = Helper.GetLoggedInUser(),
+        //                 ClientIPAddress = Helper.GetIPAddress()
+        //             }, true);
+        //  }
 
         public AuditTrailListingResponse GetAuditList(PagerItemsII auditparameter)
         {
@@ -70,5 +64,14 @@ namespace PermissionManagement.Services
             return repositoryInstance.GetItemPendingApprovalList(pageNumber, pageSize, sortField, sortOrder, searchText, searchFields);
         }
 
-     }
+        public List<AuditTrailListingDto> GetAuditTrailForExport(AuditTrail searchCriteria, DateTime? actionStartTo = null, DateTime? actionEndTo = null)
+        {
+            return repositoryInstance.GetAuditTrailForExport(searchCriteria, actionStartTo, actionEndTo);
+        }
+
+        public List<AuditChangeListingDto> GetAuditChangeForExport(AuditChange searchCriteria, DateTime? actionDateTo)
+        {
+            return repositoryInstance.GetAuditChangeForExport(searchCriteria, actionDateTo);
+        }
+    }
 }

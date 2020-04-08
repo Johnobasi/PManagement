@@ -1,0 +1,215 @@
+﻿@using PermissionManagement.Controllers
+@using PermissionManagement.Utility
+@model PermissionManagement.Model.AllUserListModel
+@{
+    ViewBag.Title = "Users List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section MainContent {
+    <style type="text/css">
+        .custom-loader-color {
+            color: #fff !important;
+            font-size: 150px !important;
+        }
+
+        .custom-loader-background {
+            background-color: crimson !important;
+        }
+
+        .custom-middle-align {
+            vertical-align: middle !important;
+        }
+    </style>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive page-head-line">
+                <div class="col-md-9 align-text-bottom">
+                    <br />User List
+                </div>
+                @using (@Html.BeginForm("ExportExcel", "Reports", FormMethod.Post))
+                {
+                    <button class="btn btn-default pull-right tooltipBottomLeft" tooltip="Export to Excel" type="submit" name="ExportExcel" onclick="return GetData();" id="ExportExcel">
+                        <span class="glyphicon glyphicon-save "></span> <span class="fa fa-file-excel-o"></span>
+                    </button>
+                    @Html.Hidden("reportType")
+                    @Html.Hidden("searchKey")
+                    @Html.Hidden("dUserName")
+                    @Html.Hidden("dFirstName")
+                    @Html.Hidden("dLastName")
+                    @Html.Hidden("dEmail")
+                    @Html.Hidden("dfrom-date")
+                    @Html.Hidden("dto-date")
+                }
+            </div>
+        </div>
+    </div>
+
+    @using (@Html.BeginForm("UsersList", "Reports", FormMethod.Post))
+    {
+        <div class="table-responsive">
+            <div class="col-md-12">
+                <p>
+                    @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View);
+                    if (status)
+                    {
+                        @Html.ActionLink("Exception List", "ExceptionList")
+                    }
+                    }
+                </p>
+                <div class="row">
+                    <div class="col-md-6">
+                        @Html.DropDownList("ReportTypeEnum", new SelectList(Enum.GetValues(typeof(PermissionManagement.Model.ReportTypeEnum))), new { @class = "form-control", onchange = "HoldSelectedItem();" })
+                    </div>
+                    @*<div class="col-md-2">
+                            <input type="submit" class="btn btn-primary col-md-12 pull-right" value="Get Users" id="btnSubmit" />
+                        </div>*@
+                    <div class="col-md-6">
+
+                        <button type="button" class="btn btn-default btn-md refresh-button pull-right" id="refresh-button">
+                            <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+                        </button>
+                        <button type="button" class="btn btn-default btn-md search-button pull-right" id="search-button">
+                            <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
+                        </button>
+                    </div>
+                </div>
+                <hr />
+                <table id="UserListTbl" class="table table-striped table-bordered table-hover" cellspacing="0"></table>
+            </div>
+        </div>
+        <hr />
+        if (Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View))
+        {
+            @Html.ActionLink("Exception List", "ExceptionList")
+        }
+    }
+}
+
+@section scripts {
+
+    <script type="text/javascript">
+        var varReportTypeEnum;
+        $(document).ready(function ()
+        {
+            var reportType = $('#ReportTypeEnum :selected').text();
+            $('#rptretportType').val($('#ReportTypeEnum :selected').text());
+            var assetListVm;
+            var dt;
+
+            $(function ()
+            {
+                assetListVm = {
+                    dt: null,
+                    init: function ()
+                    {
+                        dt = $('#UserListTbl').DataTable({
+                            initComplete: function ()
+                            {
+                                var api = this.api();
+                                $('#UserListTbl_filter input')
+                                    .off('.DT')
+                                    .on('keyup.DT',
+                                        function (e)
+                                        {
+                                            if (e.keyCode == 13)
+                                            {
+                                                api.search(this.value).draw();
+                                            }
+                                        });
+                            },
+                            "filter": false,
+                            //"searching": true,
+
+                            "processing": true,
+                            "serverSide": true,
+                            "language": {
+                                "processing":
+                                    "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>"
+                            },
+                            "ajax": {
+                                "url": '@Url.Action("UserData", "Reports")',
+                                'type': 'GET',
+                                "data": function (d) { d.reportType = $('#ReportTypeEnum :selected').text(); } //JSON.stringify({ reportType: varReportTypeEnum })
+                            },
+
+                            "columns": [
+                                { "title": "User Name", "data": "UserName", "searchable": true },
+                                { "title": "First Name", "data": "FirstName", "searchable": true },
+                                { "title": "Last Name", "data": "LastName", "searchable": true },
+                                { "title": "Email", "data": "Email" },
+                                { "title": "Creation Date", "data": "CreationDate" }
+                            ],
+                            "lengthMenu": [[10, 25, 50, 100], [10, 25, 50, 100]]
+                        });
+                        yadcf.init(dt,
+                            [
+                                {
+                                    column_number: 0,
+                                    filter_type: "text"
+                                }, {
+                                    column_number: 1,
+                                    filter_type: "text"
+                                },
+                                {
+                                    column_number: 2,
+                                    filter_type: "text"
+                                },
+                                {
+                                    column_number: 3,
+                                    filter_type: "text"
+                                },
+                                {
+                                    column_number: 4,
+                                    filter_type: "range_date",
+                                    date_format: "dd/mm/yyyy",
+                                    filter_delay: 500
+                                }
+                            ],
+                            {
+                                externally_triggered: true
+                            });
+                    },
+
+                    refresh: function ()
+                    {
+                        dt.ajax.reload();
+                    },
+
+                    search: function ()
+                    {
+
+                        yadcf.exFilterExternallyTriggered(dt);
+                    }
+
+                },
+                $('#refresh-button').on("click", assetListVm.refresh);
+                $('#search-button').on("click", assetListVm.search);
+                assetListVm.init();
+            });
+        });
+
+    </script>
+    <script>
+        function GetData(parameters)
+        {
+            var tblSearchControls = 'yadcf-filter--UserListTbl';
+            document.getElementById("reportType").value = $('#ReportTypeEnum :selected').text();
+            document.getElementById("searchKey").value = $('input[type="search"]').val();
+            document.getElementById("dUserName").value = document.getElementById(tblSearchControls + '-0').value;
+            document.getElementById("dFirstName").value = document.getElementById(tblSearchControls + '-1').value;
+            document.getElementById("dLastName").value = document.getElementById(tblSearchControls + '-2').value;
+            document.getElementById("dEmail").value = document.getElementById(tblSearchControls + '-3').value;
+            document.getElementById("dfrom-date").value = document.getElementById(tblSearchControls + '-from-date-4').value;
+            document.getElementById("dto-date").value = document.getElementById(tblSearchControls + '-to-date-4').value;
+
+            @*@Html.Hidden("dUserName") =yadcf-filter--UserListTbl-0
+            @Html.Hidden("dFirstName")=yadcf-filter--UserListTbl-1
+            @Html.Hidden("dLastName")=yadcf-filter--UserListTbl-2
+            @Html.Hidden("dEmail") =yadcf-filter--UserListTbl-3
+            @Html.Hidden("dfrom-date")yadcf-filter--UserListTbl-from-date-4
+            @Html.Hidden("dto-date")yadcf-filter--UserListTbl-to-date-4*@
+            return true;
+        }
+    </script>
+}

@@ -17,37 +17,45 @@
     <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css' />
     <title>@Helper.GetCompanyName() - @ViewBag.Title</title>
     @Styles.Render("~/Content/css")
-    @Scripts.Render("~/Content/jqueryui")
     <link href="@Url.Content("~/Content/basic.css")" rel="stylesheet" type="text/css" />
     <link href="@Url.Content("~/Content/custom.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/CustomToolTip.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/font-awesome.min.css")" rel="stylesheet" type="text/css" />
 </head>
 <body>
 
     <div id="wrapper">
         <!-- navbar top -->
-        <nav class="navbar navbar-default navbar-cls-top " role="navigation" id="navbar" style="margin-bottom: 0">
-            <!-- navbar-header -->
-            <div class="navbar-header">
-                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-                            <span class="sr-only">Toggle navigation</span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                            <span class="icon-bar"></span>
-                        </button>
-                        <a class="navbar-brand" href="@Helper.GetRootURL()/admin"><img src="~/Images/fbnlogo.jpg" alt="" /></a>
-                    </div>
-                    <!-- end navbar-header -->
-                    <!-- navbar-top-links -->
-                    <div class="header-right">
-                        <div class="pull-left">
-                            <p><font style="font-size:12px;padding-right:10px;">Welcome, <strong>@Helper.GetLoggedInUser()</strong></font></p>
-                            <p><font style="font-size:10px;padding-right:10px;">Last Login: <span id="lastLogin"></span></font></p>
-                        </div>
-                        <a href="@Helper.GetLoginUrl()" class="btn btn-danger pull-right" title="Log in/out"><i class="fa fa-sign-@Helper.GetLoginState() fa-fw"></i></a>
-                    </div>
-                    <!-- end navbar-top-links -->
-        </nav>
-               <!-- navbar side -->
+		<nav class="navbar navbar-default navbar-cls-top " role="navigation" id="navbar" style="margin-bottom: 0">
+			<!-- navbar-header -->
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+					<span class="sr-only">Toggle navigation</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="@Helper.GetRootURL()/admin"><img src="~/Images/polaris-logo-new-small.png" alt="" /></a>
+			</div>
+			<!-- end navbar-header -->
+			<!-- navbar-top-links -->
+			<div class="header-right">
+				<div class="pull-left">
+					<p style="float: left;">
+						<font style="font-size:12px;padding-right:10px;">Welcome, <strong>@Helper.GetLoggedInUser()</strong></font><br>
+						<font style="font-size:10px;padding-right:10px;">Last Login: <span id="lastLogin"></span></font>
+					</p>
+					<p style="float: left;">
+						<a href="@Helper.GetRootURL()/logout" class="btn btn-danger pull-right" title="Log in/out">
+							Logout
+						</a>
+					</p>
+				</div>
+			</div>
+			<!-- end navbar-top-links -->
+		</nav>
+
+		<!-- navbar side -->
         <nav class="navbar-default navbar-side" role="navigation">
             <!-- sidebar-collapse -->
             <div class="sidebar-collapse">
@@ -66,50 +74,103 @@
         </div>
         <!-- end page-wrapper -->
         <div id="footer-sec">
-            <span class="copyright">&copy;@DateTime.Now.Year  @*<a href="http://www.abc.com" _target="blank" class="go-top">ABC Solutions.</a>*@ All Rights Reserved </span>
+            <span class="copyright">&copy;First Bank of Nigeria Ltd. @DateTime.Now.Year  @*<a href="http://www.abc.com" _target="blank" class="go-top">ABC Solutions.</a>*@ All Rights Reserved </span>
         </div>
     </div>
-    @Scripts.Render("~/bundles/jquery")
-    @Scripts.Render("~/bundles/bootstrap")
-    @Scripts.Render("~/bundles/jqueryui")
-    @Scripts.Render("~/bundles/jqueryval")
-    @RenderSection("scripts", required: false)
 
+	@Scripts.Render("~/bundles/jquery")
+	@Scripts.Render("~/bundles/bootstrap")
+	@Scripts.Render("~/bundles/jqueryui")
+	@Scripts.Render("~/bundles/jqueryval")
+	@RenderSection("scripts", required: false)
+	@Scripts.Render("~/bundles/datatables")
+    
     <script type="text/javascript">
 
         var rootUrl = "@Html.GetRootUrl()";
         var timeoutInSec = "@Html.GetTimeOutInMilliseconds()";
 
-        $(document).ready(function () {
+        $(document).ready(function ()
+        {
             $('.readonly').find('input, textarea, select').attr('readonly', 'readonly');
         });
-        $(document).ready(function () {
+        $(document).ready(function ()
+        {
             $.ajax({
                 method: "POST",
                 url: "@PermissionManagement.Utility.Helper.GetRootURL()" + "/Home/LastLogin",
                 data: { id: "@PermissionManagement.Utility.Helper.GetLoggedInUserID()" },
-                success: function (result) {
+                success: function (result)
+                {
                     console.log(result);
                     $('#lastLogin').html('').append(result);
                 }
             })
+            setActiveMenu();
         });
 
-        $(document).ready(function () {
+        $(document).ready(function ()
+        {
             heartBeat();
         });
 
-        function heartBeat() {
+        function heartBeat()
+        {
             setInterval("heartBeat2()", timeoutInSec);
         }
 
-        function heartBeat2() {
+        function heartBeat2()
+        {
             var d = new Date();
             var curr_hour = d.getHours();
             var curr_min = d.getMinutes();
             window.location.href = rootUrl + "/LogOut?xxkeyxx=" + curr_hour + ":" + curr_min;
         }
 
+        function setActiveMenu()
+        {
+            var url = document.URL
+            if (url.indexOf('UserSetup') !== -1)
+            {
+                setActiveMenuItem('UserSetup', 'ListUser', 'mnuUserSetup', 'mnuUserList');
+                setActiveMenuItem('UserSetup', 'CreateUser', 'mnuUserSetup', 'mnuAddNewUser');
+                setActiveMenuItem('UserSetup', 'ListRole', 'mnuUserSetup', 'mnuRoleList');
+                setActiveMenuItem('UserSetup', 'CreateRole', 'mnuUserSetup', 'mnuAddNewRole');
+            }
+            else if (url.indexOf('Audit') !== -1)
+            {
+                setActiveMenuItem('Audit', 'AuditTrail', 'mnuAuditTrail', 'mnuActivityLog');
+                setActiveMenuItem('Audit', 'AuditChange', 'mnuAuditTrail', 'mnuChangeLog');
+            }
+            else if (url.indexOf('MyProfile') !== -1)
+            {
+                setActiveMenuItem('MyProfile', 'Edit', 'mnuMyProfile', 'mnuMyDetails');
+                setActiveMenuItem('MyProfile', 'ChangePassword', 'mnuMyProfile', 'mnuChangePassword');
+            }
+            else if (url.indexOf('PortalSettings') !== -1)
+            {
+                setActiveMenuItem('PortalSettings', 'ViewSettingsList', 'mnuPortalSettings', 'mnuViewSettings');
+                setActiveMenuItem('PortalSettings', 'AddSettings', 'mnuPortalSettings', 'mnuAddSettings');
+            }
+            else if (url.indexOf('Reports') !== -1)
+            {
+                setActiveMenuItem('Reports', 'ExceptionList', 'mnuReports', 'mnuExceptionsReport');
+                setActiveMenuItem('Reports', 'UsersList', 'mnuReports', 'mnuUsersReport');
+            }
+        }
+
+        function setActiveMenuItem(controller, viewname, menuitem, subMenuItem)
+        {
+            if (document.URL.indexOf(controller) !== -1)
+            {
+                document.getElementById('li' + menuitem).className = 'active';
+                document.getElementById('ul' + menuitem).className = 'nav nav-second-level in';
+            }
+            if (document.URL.indexOf(controller) !== -1 && document.URL.indexOf(viewname) !== -1)
+            {
+                document.getElementById('href' + subMenuItem).className = 'active-menu';
+            }
+        }
     </script>
 </body>
 </html>

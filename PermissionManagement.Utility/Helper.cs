@@ -1,22 +1,15 @@
 ﻿using Microsoft.VisualBasic;
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using System.Xml.Linq;
 using System.Configuration;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Serialization;
-using System.Threading;
-using System.Net.NetworkInformation;
 using System.IO;
-using System.Management;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Web;
+using System.Xml.Serialization;
 
 
 namespace PermissionManagement.Utility
@@ -634,7 +627,7 @@ namespace PermissionManagement.Utility
 
         public static string GetCompanyName()
         {
-            var s = ConfigurationManager.AppSettings["CompanyName"] ?? "Polaris Bank Limited";
+            var s = ConfigurationManager.AppSettings["CompanyName"] ?? "First Bank of Nigeria";
             return s;
         }
 
@@ -836,7 +829,9 @@ namespace PermissionManagement.Utility
                     localIP = ip.ToString();
                 }
             }
-            return localIP.StartsWith("172.16.248.") || localIP.StartsWith("172.16.249.");
+            var s = ConfigurationManager.AppSettings["OverrideIsTest"];
+            var IsTest = string.IsNullOrEmpty(s) ? false : s.Equals("true") ? true : false;
+            return ((localIP.StartsWith("172.16.248.") || localIP.StartsWith("172.16.249.")) && IsTest);
         }
 
         public static string GetCacheKey(string modelType, string modelID, string loggedInUser)
@@ -869,6 +864,16 @@ namespace PermissionManagement.Utility
             var httpRequestBase = HttpContext.Current.Request;
             var comment = httpRequestBase.Form["ApproverComment"];
             return comment;          
+        }
+
+        public static string GetLoggedInUserSolID()
+        {
+            var c = HttpContext.Current;
+            if (c == null) return string.Empty;
+            if (c.User.Identity as Identity != null)
+                return ((Identity)c.User.Identity).BranchCode;
+            else
+                return string.Empty;
         }
     }
 }

@@ -1,0 +1,212 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.ReportsExceptionListingResponse
+
+@{
+    ViewBag.Title = "Exceptions List";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section MainContent {
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="page-head-line"> Exceptions List</h1>
+            
+                <button type="button" class="btn btn-default btn-md search-button" id="search-button" style="float:right;">
+                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
+                </button>
+                <button type="button" class="btn btn-default btn-md refresh-button" id="refresh-button" style="float:right;">
+                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+                </button>
+           
+            <hr />
+            <div class="table-responsive">
+                <table id="ExceptionListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
+                    <thead>
+                    <tr>
+                        <th>Exception Id</th>
+                        <th>Exception Message</th>
+                        <th>Exception Date</th>
+                        <th>ExceptionPage</th>
+                        <th>ExceptionType</th>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+            <hr />
+            
+        </div>
+    </div>
+    <div class="row">
+        <div class="modal fade" id="addpane" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="myModalLabel">Exception Details</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-12 col-sm-6 col-xs-12">
+                                <div class="form-group">
+                                    <div id="dataDiv">
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@section scripts {
+    <script type="text/javascript">
+        function ShowModal(data) {
+            var purl = "@Helper.GetRootURL()" + "/Report/ListExceptionData";
+
+            alert(purl);
+            $.ajax({
+                type: "POST",
+                url: "@Url.Action("GetAuditChangeData", "Audit")",
+                data: "{ 'id':'" + data + "'}",
+                contentType: "application/json; charset=utf-8",
+                error: function(xhr, ajaxOptions, thrownError) {
+                    alert(xhr.statusText);
+                    //alert(thrownError);
+                },
+                success: function(d) {
+                    // alert(data);
+                    $("#dataDiv").html(d);
+                    $('#addpane').modal('show');
+                }
+
+            });
+
+
+        }
+
+        $(document).ready(function() {
+            var purl = "@Helper.GetRootURL()" + "/Reports/ListExceptionData";
+            alert(purl);
+            function formatDate(date1) {
+
+                var date = new Date(date1);
+                var hours = date.getHours();
+                var minutes = date.getMinutes();
+                var secs = date.getSeconds();
+
+                hours = hours < 10 ? '0' + hours : hours;
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                secs = secs < 10 ? '0' + secs : secs;
+                var strTime = hours + ':' + minutes + ':' + secs;
+                var monthNumber = date.getMonth() + 1;
+
+                return date.getDate() + "/" + monthNumber + "/" + date.getFullYear() + "  " + strTime;
+            };
+            var dt;
+            var itemListVM = {
+                dt: null,
+
+                init: function() {
+                    var purl = "@Helper.GetRootURL()" + "/Report/ListExceptionData";
+
+                   alert(purl);
+                    //$.fn.dataTable.ext.errMode = 'none';
+                    dt = $('#ExceptionListTbl')
+                        .DataTable({
+                            initComplete: function() {
+                                var api = this.api();
+                                $('#ExceptionListTbl_filter input')
+                                    .off('.DT')
+                                    .on('keyup.DT',
+                                        function(e) {
+                                            if (e.keyCode == 13) {
+                                                api.search(this.value).draw();
+                                            }
+                                        });
+                            },
+                            "filter": false,
+                            "processing": true,
+                            "language": {
+                                "processing":
+                                    "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>"
+                            },
+                            "serverSide": true,
+                            "ajax": { "url": purl, "type": "POST" },
+                            "columns": [
+                                { "title": "Exception Id", "data": "ExceptionId" },
+                                {
+                                    "title": "Exception Message",
+                                    "data": "ExceptionMessage",
+                                    "render": function(data, type, full, meta) {
+                                        return formatDate(data);
+                                    }
+
+                                },
+                                {
+                                    "title": "Exception Date",
+                                    "data": " ExceptionDate"
+                                },
+                                {
+                                    "title": "ExceptionDetails",
+                                    "data": "ExceptionDetails",
+                                    "render": function(data, type, full, meta) {
+                                        var linkDisplay = "View Details";
+                                        return '<a  onclick="return ShowModal(' +
+                                            data +
+                                            ');" href="#">' +
+                                            linkDisplay +
+                                            '</a>';
+                                    }
+                                },
+                                { "title": "Exception Page", "data": "ExceptionPage" }
+                            ],
+                            "lengthMenu": [[10, 20, 50], [10, 20, 50]]
+                        });
+                    yadcf.init(dt,
+                        [
+                            {
+                                column_number: 0,
+                                filter_type: "text"
+                            }, {
+                                column_number: 1,
+                                filter_type: "text"
+                            },
+                            {
+                                column_number: 2,
+                                filter_type: "range_date",
+                                date_format: "dd/mm/yyyy",
+                                filter_delay: 500
+                            },
+                            {
+                                column_number: 4,
+                                filter_type: "text"
+                            }
+                        ],
+                        {
+                            externally_triggered: true
+                        });
+                },
+
+                refresh: function() {
+                    dt.ajax.reload();
+                },
+
+                search: function() {
+                    yadcf.exFilterExternallyTriggered(dt);
+                }
+            }
+
+            $('#refresh-button').on("click", itemListVM.refresh);
+            $('#search-button').on("click", itemListVM.search);
+
+            /////////////////////////////////////////////////////////////////
+            // Let's kick it all off
+            itemListVM.init();
+        });
+    </script>
+}

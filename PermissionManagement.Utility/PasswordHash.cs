@@ -1,17 +1,9 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using System.Xml.Linq;
-using System.Text;
+﻿using System;
 using System.Security.Cryptography;
+using System.Text;
 namespace PermissionManagement.Utility
 {
-     public sealed class PasswordHash
+    public sealed class PasswordHash
     {
         private PasswordHash()
         {
@@ -19,7 +11,7 @@ namespace PermissionManagement.Utility
 
         private static string GenerateSalt()
         {
-            byte[] data = new byte[16];
+            byte[] data = new byte[32];
             RNGCryptoServiceProvider p = new RNGCryptoServiceProvider();
             p.GetBytes(data);
             return Convert.ToBase64String(data);
@@ -47,7 +39,7 @@ namespace PermissionManagement.Utility
 
         public static string Hash(string username, string password)
         {
-            string salt = GenerateSalt(username);
+            string salt = GenerateSalt(username + password); // + "F!r$t8@nkN!ger!@");
             string objValue = EncodePassword(password, salt);
             if (objValue.Length > 0x80)
             {

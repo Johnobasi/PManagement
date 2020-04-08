@@ -1,5 +1,5 @@
-﻿using PermissionManagement.Validation;
-using PermissionManagement.Model;
+﻿using PermissionManagement.Model;
+using PermissionManagement.Validation;
 using System;
 using System.Collections.Generic;
 
@@ -8,6 +8,7 @@ namespace PermissionManagement.Services
     public interface ISecurityService
     {
         User GetUser(string username);
+        User GetUserBySessionId(string sessionId);
         //User GetUserByUsername(string Username);
         AuthenticationDataDto SignIn(string username, string password, bool sessionBased, ref ValidationStateDictionary states);
         AuthenticationDataDto Renew(string sessionId);
@@ -37,6 +38,7 @@ namespace PermissionManagement.Services
         void AddUserForSessionMgmt(User userDetails);
         void UpdateUserRole(string username, Guid roleId);
         void UpdateUserRoleUserBranch(string username, Guid roleId, string branchCode);
+        List<ExportDto> GetUserListForExcel(string searchKey);
 
     }
 }

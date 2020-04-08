@@ -7,54 +7,73 @@
 }
 
 @section MainContent {
-    <div class="row">
-        <div class="col-md-12">
-            <h1 class="page-head-line"> Audit Trail</h1>
-            <p>
-                @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View);
-                  if (status)
-                  { 
-                      @Html.ActionLink("Audit Change", "AuditChange")
-                  }
-                  }
-                <button type="button" class="btn btn-default btn-md search-button" id="search-button" style="float:right;">
-                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
-                </button>
-                <button type="button" class="btn btn-default btn-md refresh-button" id="refresh-button" style="float:right;">
-                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
-                </button>
-            </p>
-            <hr/>
-            <div class="table-responsive">
-                <table id="AuditTrailListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
-                    <thead>
-                        <tr>
-                            <th>Username</th>
-                            <th>Audit Action</th>
-                            <th>Action StartTime</th>
-                            <th>Action EndTime</th>
-                            <th>Client IP Address</th>
-                            <th>Message</th>
-                        </tr>
-                    </thead>
-                </table>
-     </div>
-   <hr />
-         <p>
-            @if (status)
-            { 
-                @Html.ActionLink("View Audit Change", "AuditChange")            
-            }
-          </p>
-     </div>
- </div>
+   
+        <div class="row">
+			<div class="col-md-12 col-xs-12 col-sm-12 align-text-bottom page-head-line">
+				Audit Trail |
+					@{
+						var status = Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View);
+						if (status)
+						{
+							<a href="@Url.Action("AuditChange", "Audit")" class="btn btn-link btn-sm text-capitalize">
+								<i class="fa fa-plus" aria-hidden="true"></i>
+								Audit Change
+							</a>
+						}
+					}
+					<div  class="pull-right" style="font-size:12px;">						
+						@using (Html.BeginForm("AuditTrail", "Audit", FormMethod.Post, new { @class = "save_as_excel" }))
+						{
+							@Html.Hidden("XLUserName")
+							@Html.Hidden("XLAuditAction")
+							@Html.Hidden("XLActionStartFrom")
+							@Html.Hidden("XLActionStartTo")
+							@Html.Hidden("XLActionEndFrom")
+							@Html.Hidden("XLActionEndTo")
+							<button class="btn btn-link btn-sm tooltipBottomLeft" type="submit" name="btnExcel" tooltip="Save as Excel" onclick="return GetData();" id="btnExcel"> 
+								<span class="glyphicon glyphicon-save "></span> Save as Excel
+							</button>
+						} |
+						<button type="button" class="btn btn-link btn-sm search-button" id="search-button" >
+							<span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
+						</button> |
+						<button type="button" class="btn btn-link btn-sm refresh-button" id="refresh-button" >
+							<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+						</button>
+					</div>
+			</div>
+		</div>
+		<div class="row">			
+			<div class="col-md-12">
+				<div class="table-responsive">
+					<table id="AuditTrailListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
+						<thead>
+							<tr>
+								<th>Username</th>
+								<th>Audit Action</th>
+								<th>Action StartTime</th>
+								<th>Action EndTime</th>
+								<th>Client IP Address</th>
+								<th>Message</th>
+								<th>HTTP Action</th>
+							</tr>
+						</thead>
+					</table>
+				</div>
+			</div>
+        </div>
 }
+
+
+
 @section scripts {
     <script type="text/javascript">
 
-        $(document).ready(function () {
-
-            function formatDate(date1) {
+        $(document).ready(function ()
+        {
+            var exportToExcel = 0;
+            function formatDate(date1)
+            {
 
                 var date = new Date(date1);
                 var hours = date.getHours();
@@ -73,89 +92,132 @@
             var itemListVM = {
                 dt: null,
 
-                init: function () {
+                init: function ()
+                {
                     var purl = "@Helper.GetRootURL()" + "/Audit/ListAuditTrailData";
                     //$.fn.dataTable.ext.errMode = 'none';
                     dt = $('#AuditTrailListTbl')
                         .DataTable({
-                        initComplete: function () {
-                            var api = this.api();
-                            $('#AuditTrailListTbl_filter input')
-                            .off('.DT')
-                            .on('keyup.DT', function (e) {
-                                if (e.keyCode == 13) {
-                                    api.search(this.value).draw();
-                                }
-                            });
-                        },
-                        "filter": false,
-                        "processing": true,
-                        "language": {
-                            "processing": "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>"
-                        },
-                        "serverSide": true,
-                        "ajax": { "url": purl, "type": "POST" },
-                        "columns": [
-                            { "title": "Username", "data": "Username" },
-                            { "title": "Audit Action", "data": "AuditAction" },
+                            initComplete: function ()
                             {
-                                "title": "Action StartTime", "data": "ActionStartTime",
-                                "render": function (data, type, full, meta) {
-                                    return formatDate(data);
-                                }
+                                var api = this.api();
+                                $('#AuditTrailListTbl_filter input')
+                                .off('.DT')
+                                .on('keyup.DT', function (e)
+                                {
+                                    if (e.keyCode == 13)
+                                    {
+                                        api.search(this.value).draw();
+                                    }
+                                });
                             },
-                            {
-                                "title": "Action EndTime", "data": "ActionEndTime",
-                                "render": function (data, type, full, meta) {
-                                    return formatDate(data);
-                                }
+                            "filter": false,
+                            "processing": true,
+                            "language": {
+                                "processing": "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>"
                             },
-                            { "title": "Client IP Address", "data": "ClientIPAddress" },
-                            { "title": "Message", "data": "AuditMessage" }
-                        ],
-                        "lengthMenu": [[10, 20, 50], [10, 20, 50]]
-                    });
+                            "serverSide": true,
+                            "ajax": { "url": purl, "type": "POST" },
+                            "columns": [
+                                {
+                                    "title": "Username", "data": "Username",
+                                    "render": function (data, type, full, meta)
+                                    {
+                                        //return '<div class="customtooltip">' + data + '<span class="tooltiptext">' + data + ' user performed ' + full.AuditAction + ' operation from ip ' + full.ClientIPAddress + ' using HTTP' + full.AuditHTTPAction + ' and status is : ' + full.AuditMessage + '</span></div>'
+                                        //return '<span data-toggle="tooltip" title="' + data + ' user performed ' + full.AuditAction + ' operation from ip ' + full.ClientIPAddress + ' using HTTP' + full.AuditHTTPAction + ' and status is : ' + full.AuditMessage + '">' + data + '</span>'
+                                        return '<span class="fa fa-info-circle">&nbsp;</span><div class="Baloontooltip" tooltip="' + data + 'user \n performed ' + full.AuditAction + ' operation from ip ' + full.ClientIPAddress + ' using HTTP' + full.AuditHTTPAction + ' and status is : ' + full.AuditMessage + '">' + data + '</div>'
+                                    }
+                                },
+                                { "title": "Audit Action", "data": "AuditAction" },
+                                {
+                                    "title": "Action StartTime", "data": "ActionStartTime",
+                                    "render": function (data, type, full, meta)
+                                    {
+                                        return formatDate(data);
+                                    }
+                                },
+                                {
+                                    "title": "Action EndTime", "data": "ActionEndTime",
+                                    "render": function (data, type, full, meta)
+                                    {
+                                        return formatDate(data);
+                                    }
+                                },
+                                { "title": "Client IP Address", "data": "ClientIPAddress" },
+                                { "title": "Message", "data": "AuditMessage" },
+                                { "title": "HTTP Action", "data": "AuditHTTPAction" }
+                            ],
+                            "lengthMenu": [[10, 20, 50], [10, 20, 50]]
+                        });
                     yadcf.init(dt, [{
                         column_number: 0,
-                        filter_type: "text"
+						filter_type: "text",
+						style_class: "form-control input-sm"
                     }, {
                         column_number: 1,
-                        filter_type: "text"
+						filter_type: "text",
+						style_class: "form-control input-sm"
                     },
-                    {
-                         column_number: 2,
-                         filter_type: "range_date",
-                         date_format: "dd/mm/yyyy",
-                         filter_delay: 500
-                    },
-                    {
-                          column_number: 3,
-                          filter_type: "range_date",
-                          date_format: "dd/mm/yyyy",
-                          filter_delay: 500
-                    }
+            {
+                column_number: 2,
+                filter_type: "range_date",
+                date_format: "dd/mm/yyyy",
+                filter_delay: 500
+            },
+            {
+                column_number: 3,
+                filter_type: "range_date",
+                date_format: "dd/mm/yyyy",
+                filter_delay: 500
+            }
                     ],
-                    {
-                        externally_triggered: true
-                    });
+        {
+            externally_triggered: true
+        });
                 },
 
-                refresh: function () {
+                refresh: function ()
+                {
                     dt.ajax.reload();
                 },
 
-                search: function () {
+                search: function ()
+                {
                     yadcf.exFilterExternallyTriggered(dt);
                 }
             }
 
             $('#refresh-button').on("click", itemListVM.refresh);
             $('#search-button').on("click", itemListVM.search);
-
+            $('#btnExcel').on("click", "ExportToExcel();", itemListVM.search);
             /////////////////////////////////////////////////////////////////
             // Let's kick it all off
-            itemListVM.init();
+			itemListVM.init();
+			document.getElementById('yadcf-filter-wrapper-inner--AuditTrailListTbl-2').setAttribute('class', 'col-xs-12 form-group');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-from-date-2').setAttribute('class', 'form-control input-sm');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-from-date-2').setAttribute('placeholder', 'From Date');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-to-date-2').setAttribute('class', 'form-control input-sm');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-to-date-2').setAttribute('placeholder', 'To Date');
+			document.getElementById('yadcf-filter-wrapper-inner--AuditTrailListTbl-2').style.border = "0px";
+
+			document.getElementById('yadcf-filter-wrapper-inner--AuditTrailListTbl-3').setAttribute('class', 'col-xs-12 form-group');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-from-date-3').setAttribute('class', 'form-control input-sm');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-from-date-3').setAttribute('placeholder', 'From Date');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-to-date-3').setAttribute('class', 'form-control input-sm');
+			document.getElementById('yadcf-filter--AuditTrailListTbl-to-date-3').setAttribute('placeholder', 'To Date');
+			document.getElementById('yadcf-filter-wrapper-inner--AuditTrailListTbl-3').style.border = "0px";
         })
+        function GetData()
+        {
+            var tblSearchControls = 'yadcf-filter--AuditTrailListTbl';
+            document.getElementById('XLUserName').value = document.getElementById(tblSearchControls + '-0').value;
+            document.getElementById('XLAuditAction').value = document.getElementById(tblSearchControls + '-1').value;
+            document.getElementById('XLActionStartFrom').value = document.getElementById(tblSearchControls + '-from-date-2').value;
+            document.getElementById('XLActionStartTo').value = document.getElementById(tblSearchControls + '-to-date-2').value;
+            document.getElementById('XLActionEndFrom').value = document.getElementById(tblSearchControls + '-from-date-3').value;
+            document.getElementById('XLActionEndTo').value = document.getElementById(tblSearchControls + '-to-date-3').value;
+            return true;
+        }
     </script>
 }
 

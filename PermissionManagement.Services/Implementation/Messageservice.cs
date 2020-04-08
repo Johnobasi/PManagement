@@ -1,24 +1,13 @@
-﻿using Microsoft.VisualBasic;
+﻿using PermissionManagement.Model;
+using PermissionManagement.Repository;
+using PermissionManagement.Utility;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Linq;
-using System.Web;
-using System.Xml.Linq;
-using System.Configuration;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Serialization;
-using System.Threading;
-using System.IO;
-using System.Management;
-using PermissionManagement.Utility;
-using PermissionManagement.Repository;
-using PermissionManagement.Model;
 using System.Net.Mail;
 using System.Net.Mime;
+using System.Threading;
 
 namespace PermissionManagement.Services
 {

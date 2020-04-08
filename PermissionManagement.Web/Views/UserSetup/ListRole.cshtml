@@ -7,83 +7,102 @@
 }
 
 @section MainContent {
-    <div class="row">
-    <div class="col-md-12">
-        <h1 class="page-head-line">List Role</h1>
-        <p>
-            @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
-            if (status)
-            {
-                @Html.ActionLink("Create New", "CreateRole")
-            }
-            }
-        </p>
-        <hr />
-        <div class="table-responsive">
-            <table id="RoleListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>
-                            Edit
-                        </th>
-                        <th>
-                            Delete
-                        </th>
-                        <th>
-                            Role Name
-                        </th>
-                        <th>
-                            Role Description
-                        </th>
-                    </tr>
-                </thead>
-                @{var status2 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Edit); }
-                @{var status3 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Delete); }
-                @foreach (var item in Model)
-                {
-                    <tr>
-                        <td>
-                            @Html.ActionLink(status2 ? "Edit" : "View", "EditRole", new { id = item.RoleId })
-                        </td>
-                        <td class="center-block">
-                            @if (status3)
-                            {
-                                <p>
-                                    <a href="@Html.GetPostUrl("UserSetup/DeleteRole", item.RoleId.ToString())">
-                                        <span class="glyphicon glyphicon-remove-sign center-block"></span>
-                                    </a>
-                                </p>
-                                @Html.Hidden("RoleId", item.RoleId.ToString());
-                            }
-                            else
-                            {
-                                @Html.Raw("Delete")
-                            }
-                        </td>
-                        <td>
-                            @item.RoleName
-                        </td>
-                        <td>
-                            @item.Description
-                        </td>
-                    </tr>
-                }
-            </table>
-        </div>
-        <hr />
-            <p>
-                 @if (status)
-                 {
-                      @Html.ActionLink("Create New", "CreateRole")
-                 }
-            </p>
+<div class="row">
+	<div class="col-md-12 col-xs-12 col-sm-12 align-text-bottom page-head-line">
+		List Role |
+		@{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
+			if (status)
+			{
+				<a href="@Url.Action("CreateRole", "UserSetup")" class="btn btn-link btn-sm text-capitalize">
+					<i class="fa fa-plus" aria-hidden="true"></i>
+					Create New Role
+				</a>
+				@*@Html.ActionLink("Create New", "CreateUser")*@
+			}
+		}
+
+		<div class="pull-right" style="font-size:12px;">
+			@using (@Html.BeginForm("ExportExcel", "UserSetup", FormMethod.Post, new { @class = "save_as_excel" }))
+			{
+				@*<button class="btn btn-default pull-right tooltipBottomLeft" tooltip="Export to Excel" type="submit"  onclick="return GetData();" id="ExportExcel">
+					<span class="glyphicon glyphicon-save "></span> <span class="fa fa-file-excel-o"></span>
+				</button>*@
+				<button class="btn btn-link btn-sm tooltipBottomLeft" type="submit" name="ExportExcel" tooltip="Export to Excel" onclick="return GetData();" id="ExportExcel"> <span class="glyphicon glyphicon-save"></span> Save as Excel</button>
+				@Html.Hidden("searchKey")
+			}
+			|
+			<button type="button" class="btn btn-link btn-sm refresh-button" id="refresh-button">
+				<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+			</button>
+		</div>
+
+	</div>
+</div>
+
+<div class="row">
+        <div class="col-md-12">
+            <div class="table-responsive">
+                <table id="RoleListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0" >
+                    <thead>
+                        <tr>
+                            <th>
+                                Edit
+                            </th>
+                            <th>
+                                Delete
+                            </th>
+                            <th>
+                                Role Name
+                            </th>
+                            <th>
+                                Role Description
+                            </th>
+                        </tr>
+                    </thead>
+                    @{var status2 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Edit); }
+                    @{var status3 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Delete); }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @Html.ActionLink(status2 ? "Edit" : "View", "EditRole", new { id = item.RoleId },new {@class="btn btn-link" })
+                            </td>
+                            <td >
+                                @if (status3)
+                                {
+                                    
+                                    <a href="@Html.GetPostUrl("UserSetup/DeleteRole", item.RoleId.ToString())" class="btn btn-link">
+                                       Delete
+                                    </a>                                    
+                                    @Html.Hidden("RoleId", item.RoleId.ToString())                                
+                                }
+                                else
+                                {
+                                    @Html.Raw("Delete")
+                                }
+                            </td>
+                            <td style="vertical-align:middle;">
+                                @item.RoleName
+                            </td>
+                            <td style="vertical-align:middle;">
+                                @item.Description
+                            </td>
+                        </tr>
+                    }
+                </table>
+            </div>
         </div>
     </div>
 }
 @section scripts {
     <script type="text/javascript">
-        $(document).ready(function () {
+        $(document).ready(function ()
+        {
             $('#RoleListTbl').dataTable();
         });
+        function GetData()
+        {
+            document.getElementById("searchKey").value = $('input[type="search"]').val(); return true;
+        }
     </script>
 }

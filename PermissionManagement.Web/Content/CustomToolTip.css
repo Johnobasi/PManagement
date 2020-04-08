@@ -1,0 +1,118 @@
+﻿.Baloontooltip {
+    display: inline;
+    position: relative;
+}
+
+    .Baloontooltip:hover:after {
+        background: #333;
+        background: #428bca;
+        border-style: solid;
+        border-width: thin;
+        border-color: #2d5980;
+        border-radius: 5px;
+        bottom: -20px;
+        color: #fff;
+        content: attr(toolTip);
+        padding: 2px 5px;
+        position: absolute;
+        z-index: 98;
+        width: 200px;
+        font-size: .9em;
+    }
+
+    .Baloontooltip:hover:before {
+        border-color: #333 transparent;
+        border-width: 0 6px 6px 6px;
+        bottom: -4px;
+        content: "";
+        left: 50%;
+        position: absolute;
+        z-index: 99;
+    }
+
+
+.Customtooltip {
+    display: inline;
+    position: relative;
+}
+
+    .Customtooltip:hover:after {
+        background: #333;
+        background: #428bca;
+        border-style: solid;
+        border-width: thin;
+        border-color: #2d5980;
+        border-radius: 3px;
+        font-size: x-small;
+        color: #fff;
+        content: attr(glose);
+        padding: 5px 5px;
+        position: relative;
+        z-index: 98;
+        top: 80%;
+        left: 20%;
+    }
+
+    .Customtooltip:hover:before {
+        content: "";
+        position: relative;
+        z-index: 99;
+    }
+
+.tooltipsBottom {
+    display: inline;
+    position: relative;
+}
+
+    .tooltipsBottom:hover:after {
+        background: #333;
+        background: #428bca;
+        border-style: solid;
+        border-width: thin;
+        border-color: #2d5980;
+        border-radius: 3px;
+        font-size: x-small;
+        color: #fff;
+        content: attr(glose);
+        padding: 5px 5px;
+        position: absolute;
+        z-index: 98;
+        top: 100%;
+        left: 0%;
+    }
+
+    .tooltipsBottom:hover:before {
+        content: "";
+        position: absolute;
+        z-index: 99;
+    }
+
+
+.tooltipBottomLeft {
+    display: inline;
+    position: relative;
+}
+
+    .tooltipBottomLeft:hover:after {
+        background: #333;
+        background: #428bca;
+        border-style: solid;
+        border-width: thin;
+        border-color: #2d5980;
+        border-radius: 3px;
+        font-size: x-small;
+        color: #fff;
+        content: attr(tooltip);
+        padding: 2px 5px;
+        position: absolute;
+        z-index: 999;
+        bottom: -25px;
+      left: -50px;
+    }
+
+    .tooltipBottomLeft:hover:before {
+        content: "";
+        position: relative;
+        z-index: 99;
+         
+    }

@@ -1,59 +1,76 @@
 ﻿@using PermissionManagement.Utility;
 @model PermissionManagement.Model.UserListingResponse
-
 @{
     ViewBag.Title = "User Listing";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 @section MainContent {
+
+<div class="row">
+	<div class="col-md-12 col-xs-12 col-sm-12 align-text-bottom page-head-line">
+		User Listing |
+		@{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
+			if (status)
+			{
+				<a href="@Url.Action("CreateUser", "UserSetup")" class="btn btn-link btn-sm text-capitalize">
+					<i class="fa fa-plus" aria-hidden="true"></i>
+					Create New
+				</a>
+						@*@Html.ActionLink("Create New", "CreateUser")*@
+			}
+		}
+
+		<div class="pull-right" style="font-size:12px;">
+			@using (@Html.BeginForm("ExportUsersToExcel", "UserSetup", FormMethod.Post, new { @class = "save_as_excel" }))
+			{
+				@*<button class="btn btn-default pull-right tooltipBottomLeft" tooltip="Export to Excel" type="submit"  onclick="return GetData();" id="ExportExcel">
+						<span class="glyphicon glyphicon-save "></span> <span class="fa fa-file-excel-o"></span>
+					</button>*@
+				<button class="btn btn-link btn-sm" type="submit" name="ExportExcel" onclick="return GetData();" id="ExportExcel"> <span class="glyphicon glyphicon-save"></span> Save as Excel</button>
+						@Html.Hidden("searchKey")
+			}
+			|
+			<button type="button" class="btn btn-link btn-sm refresh-button" id="refresh-button">
+				<span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+			</button>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+
     <div class="row">
         <div class="col-md-12">
-            <h1 class="page-head-line">User Listing</h1>
-            <p>
-                @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
-                if (status)
-                {
-                    @Html.ActionLink("Create New", "CreateUser")
-                }
-                }
-                <button type="button" class="btn btn-default btn-md refresh-button" id="refresh-button" style="float:right;">
-                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
-                </button>
-            </p>
-            @{if (!status)
-            {<br />}}
-            <hr />
             <div class="table-responsive">
                 <table id="UserListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
                     <thead>
                         <tr>
                             <th>Username</th>
                             <th>Edit</th>
-                            <th>Delete</th>
+                            @*<th>Delete</th>*@
                             <th>Role Name</th>
                             <th>First Name</th>
                             <th>Last Name</th>
                             <th>Email</th>
                             <th>Status</th>
-                            <th>Lock/Unlock</th>
+                            @*<th>Lock/Unlock</th>*@
                         </tr>
                     </thead>
                 </table>
             </div>
-            <hr />
-            <p>
-                @if (status)
-                {
-                    @Html.ActionLink("Create New", "CreateUser")
-                }
-            </p>
         </div>
     </div>
+
 }
 @section scripts {
     <script type="text/javascript">
-
+        function GetData(){
+            // alert($('input[type="search"]').val());
+            document.getElementById("searchKey").value = $('input[type="search"]').val();return true;}
         $(document).ready(function () {
             var itemListVM = {
                 dt: null,
@@ -69,97 +86,104 @@
                     //$.fn.dataTable.ext.errMode = 'none';
                     dt = $('#UserListTbl')
                         .DataTable({
-                        initComplete: function () {
-                            var api = this.api();
-                            $('#UserListTbl_filter input')
-                                .off('.DT')
-                                .on('keyup.DT', function (e) {
-                                    if (e.keyCode == 13) {
-                                        api.search(this.value).draw();
-                                    }
-                                });
-                        },
-                        "processing": true,
-                        "language": {
-                            "processing": "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>",
-                            "searchPlaceholder" : "Type search term & ENTER",
-                        },
-                        "serverSide": true,
-                        "ajax": { "url": purl,  "type": "POST"},
-                        "columns": [
-                            { "title": "Username", "data": "Username" },
-                            {
-                                "title": "Edit", "data": "Username", "searchable": false, "orderable": false,
-                                "render": function ( data, type, full, meta ) {
-                                    var linkDisplay = canEdit ? "Edit" : "View";
-                                    return '<a href="' + "EditUser/"+ data +'">' + linkDisplay + '</a>';
-                                }
-                            },
-                            {
-                                "title": "Delete", "data": "Username", "searchable": false, "orderable": false,
-                                "render": function (data, type, full, meta) {
-                                    returnLink = "Delete";
-                                    if (canDelete)
-                                    {
-                                        if(full.IsDeleted == true && full.ApprovalStatus == "Pending" && (hasVerify || hasMakeOrCheck) && full.InitiatedBy != loggedInUser) {
-                                            returnLink = '<a href="' + "DeleteUser/" + data + '?s=Approved">Approve Delete</a> | <a href="' + "DeleteUser/" + data + '?s=Rejected">Reject Delete</a>';
+                            initComplete: function () {
+                                var api = this.api();
+                                $('#UserListTbl_filter input')
+                                    .off('.DT')
+                                    .on('keyup.DT', function (e) {
+                                        if (e.keyCode == 13) {
+                                            api.search(this.value).draw();
                                         }
-                                        else if (full.IsDeleted == false) {
-                                            returnLink = '<a href="' + "DeleteUser/" + data + '">Delete</a>';
+                                    });
+                            },
+                            "processing": true,
+                            "language": {
+                                "processing": "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>",
+                                "searchPlaceholder" : "Type search term & ENTER",
+                            },
+                            "serverSide": true,
+                            "ajax": { "url": purl,  "type": "POST"},
+                            "columns": [
+                                { "title": "Username", "data": "Username" ,
+                                    "render": function ( data, type, full, meta ) {
+                                        var linkDisplay = canEdit ? "Edit" : "View";
+                                        return '<span class="fa fa-info-circle">&nbsp;</span><span  id="\'spn'+data+'\'" tooltip="" onmouseover="GetUserInfo(this)">' + data +
+                                             '</span>';
+                                    }
+                                },
+                                {
+                                    "title": "Edit", "data": "Username", "searchable": false, "orderable": false,
+                                    "render": function ( data, type, full, meta ) {
+                                        var linkDisplay = canEdit ? "Edit" : "View";
+                                        return '<a href="' + "EditUser/"+ data +'">' + linkDisplay + '</a>';
+                                    }
+                                },
+                                //{
+                                //    "title": "Delete", "data": "Username", "searchable": false, "orderable": false,
+                                //    "render": function (data, type, full, meta) {
+                                //        returnLink = "Delete";
+                                //        if (canDelete)
+                                //        {
+                                //            if(full.IsDeleted == true && full.ApprovalStatus == "Pending" && (hasVerify || hasMakeOrCheck) && full.InitiatedBy != loggedInUser) {
+                                //                returnLink = '<a href="' + "DeleteUser/" + data + '?s=Approved">Approve Delete</a> | <a href="' + "DeleteUser/" + data + '?s=Rejected">Reject Delete</a>';
+                                //            }
+                                //            else if (full.IsDeleted == false) {
+                                //                returnLink = '<a href="' + "DeleteUser/" + data + '">Delete</a>';
+                                //            }
+                                //            else {
+                                //                returnLink = "Pending Delete";
+                                //            }
+                                //        }
+                                //        return returnLink;
+                                //    }
+                                //},
+                                {
+                                    "title": "Role Name", "data": "UserRole", "searchable": false, "orderable": false,
+                                    "render": function (data, type, full, meta) {
+                                        if (canEdit){
+                                            return '<a href="' + "EditRole/" + full.UserRoleID + '">' + data + '</a>';
+                                        }
+                                        else{
+                                            return data;
+                                        }
+                                    }
+                                },
+                                { "title": "First Name", "data": "FirstName" },
+                                { "title": "Last Name", "data": "LastName" },
+                                { "title": "Email", "data": "Email" },
+                                { "title": "Status", "data": "IsLockedOut","searchable": false, "orderable": false,
+                                    "render": function (data, type, full, meta) {
+                                        if (data == false && full.ApprovalStatus == 'Approved') {
+                                            return 'Active';
+                                        }
+                                        else if(data == true && full.ApprovalStatus == 'Pending') {
+                                            return "Locked";
                                         }
                                         else {
-                                            returnLink = "Pending Delete";
+                                            return "InActive";
                                         }
                                     }
-                                    return returnLink;
                                 }
-                            },
-                            {
-                                "title": "Role Name", "data": "UserRole", "searchable": false, "orderable": false,
-                                "render": function (data, type, full, meta) {
-                                    if (canEdit){
-                                        return '<a href="' + "EditRole/" + full.UserRoleID + '">' + data + '</a>';
-                                    }
-                                    else{
-                                        return data;
-                                    }
-                                }
-                            },
-                            { "title": "First Name", "data": "FirstName" },
-                            { "title": "Last Name", "data": "LastName" },
-                            { "title": "Email", "data": "Email" },
-                            { "title": "Status", "data": "IsLockedOut","searchable": false, "orderable": false,
-                                "render": function (data, type, full, meta) {
-                                    if (data == false && full.ApprovalStatus == 'Approved') {
-                                        return 'Active';
-                                    }
-                                    else if(data == true && full.ApprovalStatus == 'Pending') {
-                                        return "Locked";
-                                    }
-                                    else {
-                                        return "InActive";
-                                    }
-                                }
-                            },
-                            {
-                                "title": "Lock/Unlock", "data": "ApprovalStatus","searchable": false, "orderable": false,
-                                "render": function (data, type, full, meta) {
-                                    var linkDisplay = '';
-                                    var linkURL = '';
-                                    if (full.IsLockedOut == false && data == 'Approved') {
-                                        linkDisplay = 'Lock';
-                                        linkURL = "LockAccount";
-                                    }
-                                    else {
-                                        linkDisplay = 'Unlock';
-                                        linkURL = "UnlockAccount";
-                                    }
-                                    return '<a href="' + linkURL + "/" + full.Username + '">' + linkDisplay + '</a>';
-                                }
-                            }
-                        ],
-                        "lengthMenu": [[10, 20, 50], [10, 20, 50]]
-                    });
+                                //,
+                                //{
+                                //    "title": "Lock/Unlock", "data": "ApprovalStatus","searchable": false, "orderable": false,
+                                //    "render": function (data, type, full, meta) {
+                                //        var linkDisplay = '';
+                                //        var linkURL = '';
+                                //        if (full.IsLockedOut == false && data == 'Approved') {
+                                //            linkDisplay = 'Lock';
+                                //            linkURL = "LockAccount";
+                                //        }
+                                //        else {
+                                //            linkDisplay = 'Unlock';
+                                //            linkURL = "UnlockAccount";
+                                //        }
+                                //        return '<a href="' + linkURL + "/" + full.Username + '">' + linkDisplay + '</a>';
+                                //    }
+                                //}
+                            ],
+                            "lengthMenu": [[10, 20, 50], [10, 20, 50]]
+                        });
                 },
 
                 refresh: function () {
@@ -173,6 +197,47 @@
             // Let's kick it all off
             itemListVM.init();
         })
+
+        function GetDate(input)
+        {
+            return moment(Date(input,'MMM DD YYYY')).format('Do MMM YYYY')
+        }
+
+        function GetUserInfo(ctrl)
+        {
+            //alert(ctrl.id);
+            var id = ctrl.innerHTML;
+            //alert();
+            try {
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("GetUserInfo", "UserSetup")",
+                    data: "{ 'id':'" + id + "'}",
+                    contentType: "application/json; charset=utf-8",
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert(xhr.statusText);
+                        alert(thrownError);
+                    },
+                    success: function (d) {
+                        var content =   'UserName:'+id+
+                                        ' BranchID:'+d.BranchID+
+                                        ' AccountType:'+d.AccountType+
+                                        ' ApprovalStatus:'+d.ApprovalStatus+
+                                        ' Telephone:'+d.Telephone+
+                                        ' IsLockedOut:'+d.IsLockedOut+
+                                        ' LastLogInDate:'+ GetDate(d.LastLogInDate)+//Date(d.LastLogInDate).getDate() + '-'+new Date(d.LastLogInDate).getMonth+'-'+new Date(d.LastLogInDate).getFullYear+
+                                        ' IsOnline:'+d.IsOnline+
+                                        ' IsAccountExpired:'+d.IsAccountExpired+
+                                        ' IsDormented:'+d.IsDormented;
+                        jQuery(ctrl).attr('tooltip', content);
+                        jQuery(ctrl).attr('class', 'Baloontooltip');
+                    }
+                })
+            } catch (e) {
+                alert(e);
+            }
+
+        }
 
     </script>
 }

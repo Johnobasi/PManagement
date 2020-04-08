@@ -54,33 +54,34 @@ namespace PermissionManagement.Web
             container.Register<DapperContext>(reuse: containerLifetimeScope,
                 serviceKey: "StaticDBContext", made: Made.Of(() => new DapperContext()));
 
-            container.RegisterInstance(ConfigurationManager.ConnectionStrings["finConnectionString"].Name, 
+            container.RegisterInstance(ConfigurationManager.ConnectionStrings["finConnectionString"].Name,
                 serviceKey: "oracleDBConnectionString");
 
             container.Register<DapperContext>(reuse: requestLifetimeScope, serviceKey: "OracleDBContext",
-                made: Made.Of(() => new DapperContext(Arg.Of<string>("oracleDBConnectionString"))));  
- 
+                made: Made.Of(() => new DapperContext(Arg.Of<string>("oracleDBConnectionString"))));
+
             container.Register<IFinacleRepository, FinacleRepository>(reuse: requestLifetimeScope,
                 made: Made.Of(() => new FinacleRepository(Arg.Of<DapperContext>("OracleDBContext"))));
 
-            container.Register<ISecurityRepository, SecurityRepository>(reuse: requestLifetimeScope, 
-                made: Made.Of(() => new SecurityRepository(Arg.Of<DapperContext>("RequestDBContext"))));
-  
+            container.Register<ISecurityRepository, SecurityRepository>(reuse: requestLifetimeScope,
+                made: Made.Of(() => new SecurityRepository(Arg.Of<DapperContext>("RequestDBContext"),
+                                                           Arg.Of<IPortalSettingsRepository>())));
+
             container.Register<IDatastoreValidationRepository, DatastoreValidationRepository>(reuse: requestLifetimeScope,
                  made: Made.Of(() => new DatastoreValidationRepository(Arg.Of<DapperContext>("RequestDBContext"))));
 
             container.Register<IMessageRepository, MessageRepository>(reuse: containerLifetimeScope, serviceKey: "StaticMessageRepository",
                 made: Made.Of(() => new MessageRepository(Arg.Of<DapperContext>("StaticDBContext"))));
-            
-            container.Register<IMessageRepository, MessageRepository>(reuse: requestLifetimeScope, serviceKey: "RequestMessageRepository", 
+
+            container.Register<IMessageRepository, MessageRepository>(reuse: requestLifetimeScope, serviceKey: "RequestMessageRepository",
                  made: Made.Of(() => new MessageRepository(Arg.Of<DapperContext>("RequestDBContext"))));
 
-            container.Register<ILogRepository, LogRepository>(reuse: containerLifetimeScope, serviceKey: "StaticLogRepository", 
+            container.Register<ILogRepository, LogRepository>(reuse: containerLifetimeScope, serviceKey: "StaticLogRepository",
                  made: Made.Of(() => new LogRepository(Arg.Of<DapperContext>("StaticDBContext"))));
 
             container.Register<ILogRepository, LogRepository>(reuse: requestLifetimeScope, serviceKey: "RequestLogRepository",
                  made: Made.Of(() => new LogRepository(Arg.Of<DapperContext>("RequestDBContext"))));
-            
+
             container.Register<IAuditRepository, AuditRepository>(reuse: requestLifetimeScope,
                 made: Made.Of(() => new AuditRepository(Arg.Of<DapperContext>("RequestDBContext"))));
 
@@ -92,13 +93,31 @@ namespace PermissionManagement.Web
 
             container.Register<IMessageService, MessageService>(reuse: containerLifetimeScope, serviceKey: "StaticMessageService",
                 made: Made.Of(() => new MessageService(Arg.Of<IMessageRepository>("StaticMessageRepository"))));
+            container.Register<IReportsRepository, ReportsRepository>(reuse: requestLifetimeScope,
+                made: Made.Of(() => new ReportsRepository(Arg.Of<DapperContext>("RequestDBContext"),
+                                                          Arg.Of<IPortalSettingsRepository>())));
+
+            container.Register<IPortalSettingsRepository, PortalSettingsRepository>(reuse: requestLifetimeScope,
+               made: Made.Of(() => new PortalSettingsRepository(Arg.Of<DapperContext>("RequestDBContext"))));
+            container.Register<IPasswordHistoryRepository, PasswordHistoryRepository>(reuse: requestLifetimeScope,
+               made: Made.Of(() => new PasswordHistoryRepository(Arg.Of<DapperContext>("RequestDBContext"))));
+
+            container.Register<IPortalSettingsService, PortalSettingsService>(reuse: requestLifetimeScope);
+            container.Register<IPasswordHistoryService, PasswordHistoryService>(reuse: requestLifetimeScope,
+                made: Made.Of(() => new PasswordHistoryService(
+                    Arg.Of<IPasswordHistoryRepository>(),
+                    Arg.Of<IPortalSettingsRepository>(),
+                    Arg.Of<ICacheService>())));
 
             container.Register<IAuditService, AuditService>(reuse: requestLifetimeScope);
             container.Register<ICacheService, CacheService>(reuse: containerLifetimeScope);
+            container.Register<IReportService, ReportService>(reuse: requestLifetimeScope);
             container.Register<ISecurityService, SecurityService>(reuse: requestLifetimeScope,
-                made: Made.Of(() => new SecurityService(Arg.Of<ISecurityRepository>(), 
+                made: Made.Of(() => new SecurityService(Arg.Of<ISecurityRepository>(),
                     Arg.Of<IDatastoreValidationRepository>(), Arg.Of<ICacheService>(),
-                    Arg.Of<ILogService>("RequestLogService")
+                    Arg.Of<ILogService>("RequestLogService"),
+                     Arg.Of<IPortalSettingsService>(),
+                     Arg.Of<IPasswordHistoryService>()
                     )));
 
             Application.Add("container", container);

@@ -40,7 +40,10 @@ namespace PermissionManagement.Repository
             ProviderName = providerName == "Oracle.ManagedDataAccess.Client" ? "ORCL" :
                            providerName == "System.Data.SqlClient" ? "MSSQL" : "MYSQL";
         }
-
+        public bool IsTransactionInProgress()
+        {
+            return (cn != null && transaction != null);
+        }
         public IDbTransaction GetTransaction()
         {
             if (cn != null && transaction != null) { return transaction; }

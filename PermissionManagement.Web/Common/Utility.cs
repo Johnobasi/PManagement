@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using PermissionManagement.Utility;
+using System;
 using System.Web;
-using PermissionManagement.Utility;
 
 namespace PermissionManagement.Web
 {
@@ -18,5 +16,8 @@ namespace PermissionManagement.Web
             if (!HttpContext.Current.User.Identity.IsAuthenticated) return "";
             return ((Identity)(HttpContext.Current.User.Identity)).FullName.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)[1];
         }
+
+  
+
     }
 }

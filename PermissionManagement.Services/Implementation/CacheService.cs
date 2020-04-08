@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using PermissionManagement.Model;
 using System.Runtime.Caching;
-using PermissionManagement.Utility;
 
 namespace PermissionManagement.Services
 {

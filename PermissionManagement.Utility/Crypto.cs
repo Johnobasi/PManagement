@@ -1,14 +1,6 @@
-﻿using Microsoft.VisualBasic;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
-using System.Linq;
-using System.Web;
-using System.Xml.Linq;
-using System.Text;
+﻿using System;
 using System.Security.Cryptography;
+using System.Text;
 
 
 namespace PermissionManagement.Utility

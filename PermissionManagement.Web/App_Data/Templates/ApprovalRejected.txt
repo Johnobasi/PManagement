@@ -4,7 +4,7 @@
 
 <div style="position:absolute; height:100px;
 width:600px; background-color:0d1d36; padding:30px;">
-<img src="[ROOTURL]/Images/fbnlogo.jpg" />
+<img src="[ROOTURL]/Images/polaris-logo-new-small.png" />
 </div>
 
 <br/>

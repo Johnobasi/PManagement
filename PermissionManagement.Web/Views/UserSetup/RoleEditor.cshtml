@@ -1,7 +1,7 @@
 ﻿@using PermissionManagement.Utility;
 @model PermissionManagement.Model.RoleViewModel
 
-<div>
+@*<div>
     @Html.ActionLink("Back to List", "ListRole")    |
     @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
     if (status)
@@ -10,14 +10,16 @@
     }
     }
 </div>
-<hr />
+<hr />*@
 <div>
     @Html.Hidden("CurrentRole.RoleId", Model.CurrentRole.RoleId)
     @Html.Hidden("CurrentRole.RowVersionNo2", Model.CurrentRole.RowVersionNo2.ToString())
 </div>
-
+<div class="page-header" style="font-size:1.5em;">
+	<strong>Enter Role name and Description</strong>
+</div>
 <div class="form-group">
-    @Html.LabelFor(model => model.CurrentRole.RoleName, htmlAttributes: new { @class = "control-label col-md-2" })
+    @Html.LabelFor(model => model.CurrentRole.RoleName,"Role Name", htmlAttributes: new { @class = "control-label col-md-2" })
     <div class="col-md-10">
         @if (Model.CurrentRole.RoleId != Guid.Empty)
         {
@@ -37,19 +39,19 @@
         @Html.ValidationMessageFor(model => model.CurrentRole.Description)
     </div>
 </div>
-<strong>Select/Edit access rights.</strong>
 <hr />
 <div class="table-responsive">
-    <table class="table  table-bordered table-striped table-hover" cellspacing="0">
-        <thead>
+    <table class="table table-bordered table-striped table-hover" cellspacing="0">
+		<caption style="font-size:1.5em;color:#000;"><strong>Select/Edit access rights</strong></caption>
+        <thead style="font-weight:bold;">
             <tr>
-                <td><strong>Module Name</strong></td>
-                <td><strong>View</strong></td>
-                <td><strong>Verify</strong></td>
-                <td><strong>MakeOrCheck</strong></td>
-                <td><strong>Create</strong></td>
-                <td><strong>Edit</strong></td>
-                <td><strong>Delete</strong></td>
+                <td>Module Name</td>
+                <td>View</td>
+                <td>Verify</td>
+                <td>Make Or Check</td>
+                <td>Create</td>
+                <td>Edit</td>
+                <td>Delete</td>
             </tr>
         </thead>
         @foreach (var module in Model.ModuleAccessList)
@@ -58,7 +60,6 @@
         }
     </table>
 </div>
-<hr />
 <p>
     @{var status2 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Edit);
     if (status2)
@@ -67,11 +68,3 @@
     }
     }
 </p>
-<hr />
-<div>
-    @Html.ActionLink("Back to List", "ListRole")    |
-    @if (status)
-    {
-        @Html.ActionLink("Create New Role", "CreateRole")
-    }
-</div>

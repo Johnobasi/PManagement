@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using DryIoc;
+using PermissionManagement.Services;
+using PermissionManagement.Utility;
+using System;
 using System.Web;
 using System.Web.Mvc;
-using System.Net;
-using System.Diagnostics;
-using System.Net.Http;
-using PermissionManagement.Model;
-using PermissionManagement.Utility;
 
 namespace PermissionManagement.Web
 {
@@ -81,7 +77,12 @@ namespace PermissionManagement.Web
             {
                 var settings = SecurityConfig.GetCurrent();
                 var current = AuthCookie.GetCurrent();
-                current.Delete();
+                var sessionID = string.Empty;
+                if (current != null)
+                {
+                    sessionID = current.SessionUid;
+                    current.Delete();
+                }
 
                 string loginUrl = (settings.Login.Url + settings.Login.Page).ToLower();
 
@@ -92,15 +93,30 @@ namespace PermissionManagement.Web
                 {
                     if (!rawUrl.Contains("xxkeyxx")) //auto logout key
                     {
-                        redirectUrl = "?ReturnUrl=" + HttpUtility.UrlEncode(rawUrl, filterContext.HttpContext.Request.ContentEncoding);
+                        if (!Access.IsSessionActive(sessionID))
+                        {
+                            redirectUrl = "?ReturnUrl=" + HttpUtility.UrlEncode(rawUrl, filterContext.HttpContext.Request.ContentEncoding);
+                        }
+                        else
+                        {
+                            redirectUrl = string.Empty;
+                        }
+
                         AddAlert(AlertStyles.Danger, "Your session has expired or you do not have access to the page you are trying to access.", true);
                     }
                     else
                     {
                         AddAlert(AlertStyles.Danger, string.Format("You have been logged out due to inactivity for {0} minutes. Please log in again.", SecurityConfig.GetCurrent().Cookie.Timeout), true);
                     }
-                }              
-        
+                }
+
+                if (!string.IsNullOrEmpty(sessionID))
+                {
+                    var context = HttpContext.Current;
+                    var securityService = ((IContainer)context.Application["container"]).Resolve<ISecurityService>();
+                    securityService.SignOut(sessionID);
+                }
+
                 filterContext.Result = new RedirectResult(loginUrl + redirectUrl);
                 return;
             }

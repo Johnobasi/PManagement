@@ -6,19 +6,26 @@
 }
 
 @section MainContent {
-    @using (Html.BeginForm())
-    {
-        @Html.AntiForgeryToken()
-
-        <div class="row">
-
-            <div class="form-horizontal col-md-8 col-md-offset-2 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0">
-                <h1 class="page-head-line">Create Role</h1>
-                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
-                @{Html.RenderPartial("RoleEditor");}
-            </div>
-        </div>
-    }
+<div class="row">
+	<div class="col-md-12 col-xs-12 col-sm-12 align-text-bottom page-head-line">
+		Create Role |
+		@*@Html.ActionLink("Back to List", "ListRole")*@
+		<a href="@Url.Action("ListRole", "UserSetup")" class="btn btn-link btn-sm text-capitalize">
+			<i class="fa fa-arrow-left" aria-hidden="true"></i>
+			Back to List
+		</a>
+	</div>
+</div>
+<div class="row">
+	@using (Html.BeginForm("","", FormMethod.Post, new { @class = "form-horizontal col-md-10 col-xs-12 col-sm-12 col-md-offset-1" }))
+	{
+		@Html.AntiForgeryToken()
+		<span >
+			@Html.ValidationSummary(true, "", new { @class = "text-danger" })
+			@{Html.RenderPartial("RoleEditor");}
+		</span>
+	}
+</div>
 }
 @section scripts {
     <script type="text/javascript">

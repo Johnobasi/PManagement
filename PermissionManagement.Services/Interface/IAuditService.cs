@@ -1,11 +1,6 @@
-﻿using System;
+﻿using PermissionManagement.Model;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PermissionManagement.Model;
-using PermissionManagement.Utility;
-using System.Data;
 
 namespace PermissionManagement.Services
 {
@@ -17,6 +12,9 @@ namespace PermissionManagement.Services
         ItemListingResponse GetItemPendingApprovalList(int pageNumber, int pageSize, string sortField, string sortOrder, string searchText, string[] searchFields);
 
         string GetAuditChangeRecord(long id);
+
+        List<AuditTrailListingDto> GetAuditTrailForExport(AuditTrail searchCriteria, DateTime? actionStartTo = null, DateTime? actionEndTo = null);
+        List<AuditChangeListingDto> GetAuditChangeForExport(AuditChange searchCriteria, DateTime? actionDateTo);
     }
        
 

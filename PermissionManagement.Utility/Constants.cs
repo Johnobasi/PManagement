@@ -1,30 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.VisualBasic;
-using System.Collections;
-using System.Data;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Web;
-using System.Xml.Linq;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace PermissionManagement.Utility
 {
     [SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes", Justification = "It is safe to suppress a warning from this rule if instances of the value type will not be compared to each other.")]
-    public sealed class Constants
+    public sealed partial class Constants
     {       
         public class ModelType
         {
             public const string User = "User";
             public const string Role = "Role";
         }
+
         public class OperationType
         {
             public const string Create = "Create";
             public const string Edit = "Edit";
             public const string Delete = "Delete";
         }
+
         public class ApprovalNoticeType
         {
             public const string ApprovalRequest = "ApprovalRequest";
@@ -38,15 +31,25 @@ namespace PermissionManagement.Utility
             public const string Username = "Username";
 
         }
+
         public class Messages
         {
-            public const string ConcurrencyError = "This record's detail has been changed in the database since last retrieval. The up to date snapshot is displayed. Please re-apply your changes and save again.";
+            public const string ConcurrencyError =
+                    "This record's detail has been changed in the database since last retrieval. The up to date snapshot is displayed. Please re-apply your changes and save again."
+                ;
+
             public const string SaveSuccessful = "Changes to the record was successfully saved to the database.";
             public const string DeleteSuccessful = "The selected record was successfully deleted from the database.";
             public const string AddSuccessful = "New record was successfully added to the database.";
-            public const string ErrorNotice = "There were errors encountered in processing the request, please review the error(s) below and correct them.";
-            public const string EditNotPermittedError = "You are not permitted to edit this record. Please contact the administrator";
+
+            public const string ErrorNotice =
+                    "There were errors encountered in processing the request, please review the error(s) below and correct them."
+                ;
+
+            public const string EditNotPermittedError =
+                "You are not permitted to edit this record. Please contact the administrator";
         }
+
         public class SortOrder
         {
             public const string Ascending = "ASC";
@@ -82,13 +85,18 @@ namespace PermissionManagement.Utility
             public const string AuditPage = "AuditPage";
             public const string AuditMessage = "AuditMessage";
             public const string AuditChangeID = "AuditChangeID";
+
             public static string ActionDateTime = "ActionDateTime";
+
             //public static string ValueBefore = "ValueBefore";
             //public static string ValueAfter = "ValueAfter";
             public static string Changes = "Changes";
+
             public static string TableName = "TableName";
+            public static string AffectedRecordID = "AffectedRecordID";
+            public static string AuditHTTPAction = "AuditHTTPAction";
         }
-        
+
         public class AccessRights
         {
             public const string View = "View";
@@ -118,10 +126,10 @@ namespace PermissionManagement.Utility
 
         public class Modules
         {
-             public const string UserSetup = "UserSetup";
-             public const string Report = "Report";
-             public const string Admin = "Admin";
-             public const string AuditTrail = "AuditTrail";            
+            public const string UserSetup = "UserSetup";
+            public const string Reports = "Reports";
+            public const string Admin = "Admin";
+            public const string AuditTrail = "Audit";
         }
 
         public class DateFormats
@@ -129,6 +137,10 @@ namespace PermissionManagement.Utility
             public const string ShortDate = "dd/MM/yyyy";
             public const string LongDate = "dd MMMM yyyy";
             public const string ShortDateTime = "dd/MM/yyyy HH:mm";
+            /// <summary>
+            /// Returns the string format "yyyy-MM-dd HH:mm:ss"
+            /// </summary>
+            public const string LongDateTimeHyphen = "yyyy-MM-dd HH:mm:ss";
         }
 
         public class PageOrientation
@@ -176,7 +188,7 @@ namespace PermissionManagement.Utility
             public const string AccountTypeList = "AccountTypeList";
             public const string ApprovalStatusList = "ApprovalStatusList";
             public const string AuditList = "AuditList";
-
+            public const string AdministratorRoleName = "Administrator";
         }
 
         public class QueryStrings
@@ -197,5 +209,5 @@ namespace PermissionManagement.Utility
             public const int Center = 1;
             public const int Right = 2;
         }
-    }
+        }
 }

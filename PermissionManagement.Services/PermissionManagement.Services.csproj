@@ -50,14 +50,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Implementation\AuditService.cs" />
+    <Compile Include="Implementation\PasswordHistoryService.cs" />
+    <Compile Include="Implementation\PortalSettingsService.cs" />
+    <Compile Include="Implementation\ReportService.cs" />
     <Compile Include="Interface\IAuditService.cs" />
     <Compile Include="Interface\IMessageService.cs" />
     <Compile Include="Interface\ILogService.cs" />
     <Compile Include="Interface\ICacheService.cs" />
     <Compile Include="Implementation\CacheService.cs" />
     <Compile Include="Implementation\LogService .cs" />
+    <Compile Include="Interface\IPasswordHistoryService.cs" />
+    <Compile Include="Interface\IPortalSettingsService.cs" />
+    <Compile Include="Interface\IReportService.cs" />
     <Compile Include="Interface\ISecurityService.cs" />
     <Compile Include="Implementation\Messageservice.cs" />
+    <Compile Include="ModelValidator\PortalSettingsValidator.cs" />
     <Compile Include="ModelValidator\RoleValidator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Implementation\SecurityService.cs" />

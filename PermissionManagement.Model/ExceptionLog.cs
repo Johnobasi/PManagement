@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace PermissionManagement.Model
 {
    public class ExceptionLog
     {
        [IdentityPrimaryKey()]
-
        public long ExceptionId { get; set; }
        public System.DateTime ExceptionDateTime { get; set; }
        public string ExceptionDetails { get; set; }

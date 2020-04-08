@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Security;
 using System.Security.Principal;
 
 namespace PermissionManagement.Utility
@@ -20,14 +17,18 @@ namespace PermissionManagement.Utility
             get { return _identity; }
         }
 
+        private string _accountType;
+        public string AccountType { get { return _accountType; } }
+
         #endregion
 
         #region "constructor"
 
-        public Principal(IIdentity id, string roleName)
+        public Principal(IIdentity id, string roleName, string accountType)
         {
             _identity = id;
             _roleName = roleName;
+            _accountType = accountType;
         }
 
         #endregion

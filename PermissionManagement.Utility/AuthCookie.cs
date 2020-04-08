@@ -1,10 +1,4 @@
-﻿using System;
-using System.Text;
-using System.Web;
-using System.Configuration;
-using System.Security.Cryptography;
-using System.Reflection;
-
+﻿
 namespace PermissionManagement.Utility
 {
     public class AuthCookie : Cookie
@@ -53,6 +47,8 @@ namespace PermissionManagement.Utility
         }
 
         private string m_BranchCode;
+
+        public string AccountType { get; set; }
 
         /// <summary>
         /// Supply the domain namne for the cookie, and get this from the config file.

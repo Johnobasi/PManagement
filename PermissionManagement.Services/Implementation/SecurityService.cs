@@ -1,15 +1,13 @@
-﻿using System.Configuration;
-using System;
-using System.Linq;
+﻿using PermissionManagement.Model;
 using PermissionManagement.Repository;
-using PermissionManagement.Model;
-using PermissionManagement.Validation;
-using System.Net.Mail;
-using System.Collections.Generic;
-using System.Runtime.Caching;
-using System.Text.RegularExpressions;
-using System.Text;
 using PermissionManagement.Utility;
+using PermissionManagement.Validation;
+using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Globalization;
+using System.Linq;
+using System.Runtime.Caching;
 
 namespace PermissionManagement.Services
 {
@@ -18,17 +16,28 @@ namespace PermissionManagement.Services
 
         private readonly ISecurityRepository repositoryInstance;
         private readonly IDatastoreValidationRepository validationRepositoryInstance;
+        private IPortalSettingsService portalSettingsServiceInstance;
         private readonly ICacheService cacheService;
         private readonly ILogService logger;
+        private DateTime businessStartHour, businessEndHour;
+        IPasswordHistoryService passwordHistoryServiceInstance;
 
-        public SecurityService(ISecurityRepository repository, IDatastoreValidationRepository validationRepository, ICacheService cacheInstance, ILogService logService) //IMessageService messageService,
+        private int expiredIDNoOfDays = -90;// Porvided Default Value to make sure existing implementation will not break if Configuration does not exist;
+
+        public SecurityService(ISecurityRepository repository, IDatastoreValidationRepository validationRepository, ICacheService cacheInstance, ILogService logService, IPortalSettingsService portalSettingsService, IPasswordHistoryService passwordHistoryService) //IMessageService messageService,
         {
             repositoryInstance = repository;
             validationRepositoryInstance = validationRepository;
             cacheService = cacheInstance;
             logger = logService;
+            portalSettingsServiceInstance = portalSettingsService;
+            passwordHistoryServiceInstance = passwordHistoryService;
         }
 
+        public List<ExportDto> GetUserListForExcel(string searchKey)
+        {
+            return repositoryInstance.GetUserListForExcel(searchKey);
+        }
         public void UpdateUserRoleUserBranch(string username, Guid roleId, string branchCode)
         {
             repositoryInstance.UpdateUserRoleUserBranch(username, roleId, branchCode);
@@ -102,7 +111,9 @@ namespace PermissionManagement.Services
             userToAdd.ApprovalStatus = Constants.ApprovalStatus.Pending;
             userToAdd.IsFirstLogIn = true;
             userToAdd.RoleId = userToAdd.UserRole.RoleId;
+            //check if the AccountExpires and set the number of days for Accountexpiry
             
+            updateUserAccountExpiry(userToAdd);
             repositoryInstance.AddUser(userToAdd);
             RegistrationNotification(userToAdd, true);
         }
@@ -121,7 +132,16 @@ namespace PermissionManagement.Services
 
         public User GetUser(string username)
         {
-            return repositoryInstance.GetUser(username);
+            User user = repositoryInstance.GetUser(username);
+            
+            if (user != null)
+            {
+                if (user.IsDeleted && user.ApprovalStatus == Constants.ApprovalStatus.Approved)
+                {
+                    return null;
+                }
+            }
+            return user;
         }
 
         public AuthenticationDataDto SignIn(string username, string password, bool sessionBased, ref ValidationStateDictionary states)
@@ -147,9 +167,19 @@ namespace PermissionManagement.Services
 
             if (userObject == null)
             {
-                v.Errors.Add(new ValidationError("Username.InvalidUsername", username, "Invalid Username or Password"));
+                v.Errors.Add(new ValidationError("Password.InvalidUsername", username, "Invalid Username or Password"));
                 states.Add(typeof(LogInDto), v);
                 return null;
+            }
+
+            var roleID = GetRoleList().Where(f => f.RoleName == Constants.General.AdministratorRoleName).Select(r => r.RoleId).FirstOrDefault();
+            if (!IsBusinessHour())
+            {
+                //allow administrator log in outside business hours.
+                if (roleID != userObject.RoleId)
+                {
+                    v.Errors.Add(new ValidationError("User.NonBusinessHoursLoginError", username, "Login outside business hours is not allowed, Please try logging in during business hours."));
+                }
             }
 
             //Check if account is not locked,is approved and not deleted.
@@ -157,7 +187,25 @@ namespace PermissionManagement.Services
             {
                 v.Errors.Add(new ValidationError("Username.AccountLocked", username, "This account is inactive, has been locked or has been Deleted."));
                 states.Add(typeof(LogInDto), v);
+
                 return new AuthenticationDataDto() { AppAuthenticationFailed = true };
+            }
+
+            //check if user is Dormented.
+            if (userObject.LastLogInDate == null)
+            {
+                //exclude administrator account from being dormant
+                if (roleID != userObject.RoleId)
+                {
+                    int dormentNumberOfDays = NewUserIDDormentNumberDays();
+                    if ((Helper.GetLocalDate() - (DateTime)userObject.CreationDate).Days >= dormentNumberOfDays)
+                    {
+                        UpdateUserDetails(userObject, isDorment: true);
+                        v.Errors.Add(new ValidationError("Username.AccountDormented", username, "This account is Dormant as user has not logged for " + dormentNumberOfDays + " days from the day of account creation. Please contact the administrator."));
+                        states.Add(typeof(LogInDto), v);
+                        return new AuthenticationDataDto() { AppAuthenticationFailed = true };
+                    }
+                }
             }
 
             //prevent multi terminal login
@@ -174,12 +222,33 @@ namespace PermissionManagement.Services
             }
 
             //if last log in date/last activity date more than 90 days ago, refuse log in and lock the account
-            if(userObject.LastLogInDate.HasValue && userObject.LastLogInDate.Value.Date < Helper.GetLocalDate().AddDays(-90))
+            if (userObject.LastLogInDate.HasValue && userObject.LastLogInDate.Value.Date < Helper.GetLocalDate().AddDays(ActiveUserIDDormentNumberDays()))
             {
-                repositoryInstance.UpdateBadPasswordCount(username, true);
-                v.Errors.Add(new ValidationError("Username.AccountLocked", username, "This account is inactive, has been locked or has been Deleted. Please contact the administrator."));
-                states.Add(typeof(LogInDto), v);
-                return new AuthenticationDataDto() { AppAuthenticationFailed = true };
+                //exclude administrator account from being dormant
+                if (roleID != userObject.RoleId)
+                {
+                    repositoryInstance.UpdateBadPasswordCount(username, true);
+                    UpdateUserDetails(userObject, isDorment: true);
+                    v.Errors.Add(new ValidationError("Username.AccountDormented", username, "This account is Dormant. Please contact the administrator."));
+                    states.Add(typeof(LogInDto), v);
+                    return new AuthenticationDataDto() { AppAuthenticationFailed = true };
+                }
+            }
+
+            //Check if the Account is Expired
+            if (userObject.AccountExpiryDate != null)
+            {
+                if (userObject.AccountExpiryDate < DateTime.Now)
+                {
+                    //exclude administrator account from expiring
+                    if (roleID != userObject.RoleId)
+                    {
+                        UpdateUserDetails(userObject, isAccountExpired: true);
+                        v.Errors.Add(new ValidationError("Username.AccountExpired", username, "This account is Expired. Please contact the administrator."));
+                        states.Add(typeof(LogInDto), v);
+                        return new AuthenticationDataDto() { AppAuthenticationFailed = true };
+                    }
+                }
             }
 
             if (userObject.Password != "Dummy" && (userObject.AccountType == Constants.AccountType.LocalLocal || userObject.AccountType == Constants.AccountType.LocalFinacle))
@@ -187,7 +256,7 @@ namespace PermissionManagement.Services
                 //check the password match
                 if (userObject.Password != password)
                 {
-                    v.Errors.Add(new ValidationError("Username.InvalidUsername", username, "Invalid Username or Password"));
+                    //v.Errors.Add(new ValidationError("Username.InvalidUsername", username, "Invalid Username or Password"));
                     v.Errors.Add(new ValidationError("Password.InvalidPassword", password, "Invalid Username or Password"));
                     var settings = SecurityConfig.GetCurrent();
                     var lockAccount = userObject.BadPasswordCount + 1 >= settings.Cookie.MaximumPasswordRetries;
@@ -195,7 +264,7 @@ namespace PermissionManagement.Services
                     states.Add(typeof(LogInDto), v);
                     return new AuthenticationDataDto() { AppAuthenticationFailed = true };
                 }
-            }          
+            }
 
             AuthenticationDataDto auth = new AuthenticationDataDto();
             {
@@ -207,6 +276,7 @@ namespace PermissionManagement.Services
                 auth.FullName = string.Format("{0} {1}", userObject.FirstName, userObject.LastName);
                 auth.IsPasswordSet = userObject.Password != "Dummy" && (userObject.AccountType == Constants.AccountType.LocalLocal || userObject.AccountType == Constants.AccountType.LocalFinacle);
                 auth.IsRoleSet = userObject.AccountType == Constants.AccountType.ADLocal || userObject.AccountType == Constants.AccountType.LocalLocal; // userObject.UserRole != null && !string.IsNullOrEmpty(userObject.UserRole.RoleName);
+                auth.AccountType = userObject.AccountType;
             }
 
             if (sessionBased)
@@ -237,8 +307,8 @@ namespace PermissionManagement.Services
 
             var settings = SecurityConfig.GetCurrent();
             bool renewSucceed = true;
-            if ((!userObject.CurrentSessionId.HasValue || sessionId != userObject.CurrentSessionId.ToString()) || 
-                (userObject.LastActivityDate.Value.AddMinutes(settings.Cookie.Timeout) < Helper.GetLocalDate()) || 
+            if ((!userObject.CurrentSessionId.HasValue || sessionId != userObject.CurrentSessionId.ToString()) ||
+                (userObject.LastActivityDate.Value.AddMinutes(settings.Cookie.Timeout) < Helper.GetLocalDate()) ||
                 ((userObject.ApprovalStatus != Constants.ApprovalStatus.Approved) || userObject.IsLockedOut || userObject.IsDeleted))
             {
                 if (userObject.LastActivityDate.Value.AddMinutes(settings.Cookie.Timeout) < Helper.GetLocalDate())
@@ -269,7 +339,7 @@ namespace PermissionManagement.Services
                     auth.BranchCode = userObject.BranchID;
                     auth.Roles = userObject.UserRole == null ? null : userObject.UserRole.RoleName;
                     auth.FullName = string.Format("{0} {1}", userObject.FirstName, userObject.LastName);
-                    auth.IsRoleSet = !(userObject.AccountType == Constants.AccountType.ADFinacle || userObject.AccountType == Constants.AccountType.LocalFinacle); 
+                    auth.IsRoleSet = !(userObject.AccountType == Constants.AccountType.ADFinacle || userObject.AccountType == Constants.AccountType.LocalFinacle);
                 }
             }
 
@@ -443,12 +513,20 @@ namespace PermissionManagement.Services
                 states.Add(typeof(ChangePasswordDto), v);
                 return;
             }
+            int unUsablePreviousPasswordCount = 0;
+            if (passwordHistoryServiceInstance.IsRepeatingPassword(new PasswordHistoryModel() { userName = userName, password = newPassword }, out unUsablePreviousPasswordCount))
+            {
+                v.Errors.Add(new ValidationError("NewPassword.PreviouslyUsedError", oldPassword, "Password change not successful. Last " + unUsablePreviousPasswordCount + " Passwords cannot be used."));
+                states.Add(typeof(ChangePasswordDto), v);
+                return;
+            }
 
             repositoryInstance.ResetUserPassword(userName, newPassword, false);
+            passwordHistoryServiceInstance.InsertPassword(new PasswordHistoryModel() { userName = userName, password = newPassword });
 
         }
 
-        public  UserListingResponse GetUserList(PagerItemsII parameter)
+        public UserListingResponse GetUserList(PagerItemsII parameter)
         {
             return repositoryInstance.GetUserList(parameter);
         }
@@ -559,7 +637,7 @@ namespace PermissionManagement.Services
         public void DeleteRole(Guid id, ref ValidationStateDictionary states)
         {
             ValidationState v = new ValidationState();
-         
+
             bool result = repositoryInstance.DeleteRole(id);
             if (!result)
             {
@@ -620,6 +698,78 @@ namespace PermissionManagement.Services
             return status;
         }
 
-        // public ValidationState v { get; set; }
+        /// <summary>
+        /// Returns the Number of days after which the UserID will be Expired.
+        /// pulls the value from PortalSettings table for Key: expiredIDNoOfDays, if key doesnt exist -90 is set to default value
+        /// </summary>
+        /// <returns>Returns Int number of days</returns>
+        private int ActiveUserIDDormentNumberDays()
+        {
+            return GetNumberOfDays(Constants.PortalSettingsKeysConstants.ACTIVEUSERIDDORMANTNUMBERDAYS,
+                                   Convert.ToInt16(Constants.PortalSettingsKeyFallBackValues.ACTIVEUSERIDDORMANTNUMBERDAYS)) * (-1);
+        }
+
+        private int NewUserIDDormentNumberDays()
+        {
+            return GetNumberOfDays(Constants.PortalSettingsKeysConstants.NEWUSERIDDORMANTNUMBERDAYS,
+                                 Convert.ToInt16(Constants.PortalSettingsKeyFallBackValues.NEWUSERIDDORMANTNUMBERDAYS));
+        }
+
+        private int GetNumberOfDays(string key, int defaultValue)
+        {
+            bool tryGetexpiredIDNoOfDays = false;
+            PortalSetting portalsetting = portalSettingsServiceInstance.GetSettingByKey(key);
+            tryGetexpiredIDNoOfDays = int.TryParse(portalsetting != null ? portalsetting.Value : string.Empty, out expiredIDNoOfDays);
+            expiredIDNoOfDays = expiredIDNoOfDays == 0 ? defaultValue : expiredIDNoOfDays;
+            return expiredIDNoOfDays;
+        }
+
+        #region Validate Business hours
+        private bool IsBusinessHour()
+        {
+            bool isWithinBusinessHour = false;
+            if (businessStartHour == default(DateTime)) { businessStartHour = getConvertedDateTime(portalSettingsServiceInstance.GetSettingByKey(Constants.PortalSettingsKeysConstants.BUSINESSHOURSTART).Value, Constants.PortalSettingsKeyFallBackValues.BUSINESSHOURSTART); }
+            if (businessEndHour == default(DateTime)) { businessEndHour = getConvertedDateTime(portalSettingsServiceInstance.GetSettingByKey(Constants.PortalSettingsKeysConstants.BUSINESSHOURCLOSE).Value, Constants.PortalSettingsKeyFallBackValues.BUSINESSHOURCLOSE); }
+            if ((DateTime.Now > businessStartHour) && (DateTime.Now < businessEndHour)) { isWithinBusinessHour = true; }
+            return isWithinBusinessHour;
+        }
+
+        private DateTime getConvertedDateTime(string time, string defaultTime)
+        {
+            DateTime businessTime = new DateTime();
+            if (!string.IsNullOrWhiteSpace(time))
+            {
+                if (!DateTime.TryParseExact(time, "HH:mm:ss", null, DateTimeStyles.None, out businessTime))
+                { businessTime = DateTime.ParseExact(defaultTime, "HH:mm:ss", CultureInfo.InvariantCulture); }
+            }
+            return businessTime;
+        }
+
+        #endregion
+
+        private void UpdateUserDetails(User userObject, bool? isDorment = null, bool? isAccountExpired = null)
+        {
+            if (isAccountExpired != null) { userObject.IsAccountExpired = (bool)isAccountExpired; }
+            if (isDorment != null) { userObject.IsDormented = (bool)isDorment; }
+
+            repositoryInstance.UpdateUserInfo(userObject);
+        }
+
+        private void updateUserAccountExpiry(User userObject)
+        {
+            if (userObject.IsAccountExpired)
+            {
+                int accountExpiryNumberDays = Convert.ToInt32(Constants.PortalSettingsKeyFallBackValues.ACCOUNTEXPIRYNUMBERDAYS);
+                int.TryParse(portalSettingsServiceInstance.GetSettingByKey(Constants.PortalSettingsKeysConstants.ACCOUNTEXPIRYNUMBERDAYS).Value, out accountExpiryNumberDays);
+                userObject.AccountExpiryDate = DateTime.Now.Date.AddDays(accountExpiryNumberDays);
+                userObject.IsAccountExpired = false;
+            }
+        }
+
+        public User GetUserBySessionId(string sessionId)
+        {
+            var user = repositoryInstance.GetUserBySessionId(sessionId);
+            return user;
+        }
     }
 }

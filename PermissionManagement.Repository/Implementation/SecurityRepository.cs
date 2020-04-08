@@ -1,28 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using PermissionManagement.Model;
-using System.Data;
+﻿using PermissionManagement.Model;
 using PermissionManagement.Utility;
-using PermissionManagement.Validation;
-using System.Data.SqlClient;
-using System.Web.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using Dapper;
 
 namespace PermissionManagement.Repository
 {
-   public class SecurityRepository : ISecurityRepository
+    public class SecurityRepository : ISecurityRepository
     {
         private readonly IDbConnection context;
         private readonly DapperContext dapperContext;
-       
-        
-        public SecurityRepository(DapperContext dbContext)
+        IPortalSettingsRepository portalSettingsRepository;
+
+        public SecurityRepository(DapperContext dbContext, IPortalSettingsRepository portalSettingsRepositoryInstance)
         {
             dapperContext = dbContext;
             context = dbContext.Connection;
+            portalSettingsRepository = portalSettingsRepositoryInstance;
         }
         public void AddUserForSessionMgmt(User userDetails)
         {
@@ -54,7 +52,7 @@ namespace PermissionManagement.Repository
 
             IDbTransaction dbTransaction = dapperContext.GetTransaction();
 
-           // user.StaffID = user.Username;  //GetEntityNextID(Constants.SequenceNames.Staff_ID, dbTransaction);
+            // user.StaffID = user.Username;  //GetEntityNextID(Constants.SequenceNames.Staff_ID, dbTransaction);
             //user.Username = GetEntityNextID(Constants.SequenceNames.Username, dbTransaction);
             user.IsOnline = true;
             user.IsFirstLogIn = true;
@@ -65,12 +63,12 @@ namespace PermissionManagement.Repository
 
             //To handle maker checker functions
             user = ar.MakerCheckerHandller<User>(DummyObject, user, Constants.OperationType.Create, Constants.Modules.UserSetup, user.Username, dbTransaction);
-  
+
             var success = context.Insert<User>(user, databaseTableName: "[User]", excludeFieldList: new string[] { "ConfirmPassword", "UserRole", "RoleId" }, transaction: dbTransaction);
             var sql = "INSERT UsersInRoles (Username, RoleId, IsDeleted) VALUES(@Username, @RoleId, @IsDeleted) ";
             context.Execute(sql, new { Username = user.Username, user.UserRole.RoleId, user.IsDeleted }, transaction: dbTransaction);
 
-            ar.CreateAuditChange(DummyObject, user, dbTransaction,
+            ar.CreateAuditChange(DummyObject, user, dbTransaction, user.Username,
                 new string[] { "Email", "FirstName", "LastName", "Username", "Telephone",
                                 "Initial", "ApprovalStatus", "ApprovedBy", "InitiatedBy", 
                                 "ApprovalLogID", "IsDeleted", "UserRole.RoleName"
@@ -90,7 +88,7 @@ namespace PermissionManagement.Repository
             var sql = new StringBuilder();
             if (roleId != Guid.Empty)
                 sql.AppendLine("UPDATE UsersInRoles SET RoleId = @RoleID WHERE Username = @Username; ");
-            
+
             if (!string.IsNullOrEmpty(branchCode))
                 sql.AppendLine("UPDATE [User] SET BranchID = @BranchID WHERE Username = @Username; ");
 
@@ -102,23 +100,31 @@ namespace PermissionManagement.Repository
             AuditRepository ar = new AuditRepository(dapperContext);
 
             var dbVersion = GetUser(user.Username);
-          
+            SetDormentStatus(dbVersion);
+            SetMissingValues(user, dbVersion);//, new string[] { "Password", "ConfirmPassword" });
+            //Get The NewUser and ActiveUser DormentDays
+            int newUserDormentDays = 0, activeUserDormentDays = 0, accountExpiryDays;
+            int.TryParse(portalSettingsRepository.GetSettingByKey(Constants.PortalSettingsKeysConstants.NEWUSERIDDORMANTNUMBERDAYS).Value, out newUserDormentDays);
+            int.TryParse(portalSettingsRepository.GetSettingByKey(Constants.PortalSettingsKeysConstants.ACTIVEUSERIDDORMANTNUMBERDAYS).Value, out activeUserDormentDays);
+            int.TryParse(portalSettingsRepository.GetSettingByKey(Constants.PortalSettingsKeysConstants.ACCOUNTEXPIRYNUMBERDAYS).Value, out accountExpiryDays);
+
             IDbTransaction dbTransaction = dapperContext.GetTransaction();
 
             //To handle maker checker functions
             //maker checker can return the db version of an object depending on user action
             user = ar.MakerCheckerHandller<User>(dbVersion, user, Constants.OperationType.Edit, Constants.Modules.UserSetup, user.Username, dbTransaction);
-
-            var sql = ("UPDATE [User] SET Email = @Email, FirstName = @FirstName, LastName = @LastName, Username = @Username, Telephone = @Telephone, Initial = @Initial, ApprovalStatus = @ApprovalStatus, ApprovedBy = @ApprovedBy, InitiatedBy = @InitiatedBy, ApprovalLogID = @ApprovalLogID, IsDeleted = @IsDeleted Where Username = @Username AND CONVERT(bigint,RowVersionNo) = @RowVersionNo2;");
+            UpdateEditedStatus(dbVersion, user, newUserDormentDays, activeUserDormentDays, accountExpiryDays);
+            var sql = ("UPDATE [User] SET CreationDate=@CreationDate, Email = @Email, FirstName = @FirstName, LastName = @LastName, Username = @Username, Telephone = @Telephone, Initial = @Initial, ApprovalStatus = @ApprovalStatus, ApprovedBy = @ApprovedBy, InitiatedBy = @InitiatedBy, ApprovalLogID = @ApprovalLogID, BadPasswordCount = @BadPasswordCount, IsDeleted = @IsDeleted, isAccountExpired = @IsAccountExpired, IsDormented = @IsDormented,IsLockedOut = @IsLockedOut, AccountExpiryDate = @AccountExpiryDate, LastLogInDate = @LastLogInDate Where Username = @Username AND CONVERT(bigint,RowVersionNo) = @RowVersionNo2;");
             var rowAffected = context.Execute(sql.ToString(), user, transaction: dbTransaction);
             sql = ("UPDATE UsersInRoles SET RoleId = @RoleId, IsDeleted = @IsDeleted WHERE Username = @Username;");
             context.Execute(sql.ToString(), user, transaction: dbTransaction);
-
             //To Create an Audit Record
-            ar.CreateAuditChange(dbVersion, user, dbTransaction,
+            ar.CreateAuditChange(dbVersion, user, dbTransaction, user.Username,
                 new string[] { "Email", "FirstName", "LastName", "Username", "Telephone",
                                 "Initial", "ApprovalStatus", "ApprovedBy", "InitiatedBy", 
-                                "ApprovalLogID", "IsDeleted", "UserRole.RoleName"
+                                "ApprovalLogID", "IsDeleted", "UserRole.RoleName",
+                                "IsDormented","IsAccountExpired","IsLockedOut","IsDeleted",
+                                "CreationDate","LastLogInDate","AccountExpiryDate"
                              }
                          );
 
@@ -128,6 +134,8 @@ namespace PermissionManagement.Repository
 
             return rowAffected;
         }
+
+
 
         public void UpdateBadPasswordCount(string username, bool lockAccount)
         {
@@ -158,6 +166,8 @@ namespace PermissionManagement.Repository
             if (user != null && user.UserRole != null)
                 user.RoleId = user.UserRole.RoleId;
 
+            SetDormentStatus(user);
+            SetAccountExpiredStatus(user);
             return user;
         }
 
@@ -296,7 +306,12 @@ namespace PermissionManagement.Repository
             {
                 filter = parameter.siteSearch.Replace("%", "[%]").Replace("[", "[[]").Replace("]", "[]]");
                 filter = string.Format("%{0}%", filter);
-                whereClause = (" and ((u.Username LIKE @SearchFilter) OR (FirstName LIKE @SearchFilter) OR (LastName LIKE @SearchFilter) OR ( r.RoleName LIKE @SearchFilter) OR (Email LIKE @SearchFilter)) ");
+                whereClause = (" and " +
+                               "((u.Username LIKE @SearchFilter) OR" +
+                               " (FirstName LIKE @SearchFilter) " +
+                               "OR (LastName LIKE @SearchFilter) OR" +
+                               " ( r.RoleName LIKE @SearchFilter) OR" +
+                               " (Email LIKE @SearchFilter)) ");
             }
 
             sql.AppendLine(") AS NUMBER, u.Username, FirstName, LastName, Email, ApprovalStatus, IsLockedOut, InitiatedBy, u.IsDeleted, ");
@@ -323,7 +338,7 @@ namespace PermissionManagement.Repository
             //sql.AppendFormat("ORDER BY {0} ", sortSql.ToString());
 
             result.PagerResource.ResultCount = (int)context.Query<Int64>(
-                string.Format("Select Count(u.Username) From [User] u INNER JOIN UsersInRoles ur on ur.Username = u.Username INNER JOIN Role r on ur.RoleID = r.RoleID {0}", whereClause),
+                string.Format("Select Count(u.Username) From [User] u INNER JOIN UsersInRoles ur on ur.Username = u.Username INNER JOIN Role r on ur.RoleID = r.RoleID {0} WHERE (u.ApprovalStatus = 'Pending' or (u.ApprovalStatus = 'Approved' and u.IsDeleted = 0))", whereClause),
                 new
                 {
                     StartPage = ((parameter.PageNumber - 1) * parameter.PageSize) + 1,
@@ -340,6 +355,26 @@ namespace PermissionManagement.Repository
                 }).ToList();
 
             return result;
+        }
+
+        public List<ExportDto> GetUserListForExcel(string searchKey)
+        {
+            List<ExportDto> usersList = null;
+            StringBuilder sql = new StringBuilder("select u.Username, FirstName, LastName, Email, ApprovalStatus,r.RoleName as UserRole,u.IsLockedOut, u.AccountType, u.IsDeleted,u.InitiatedBy,r.RoleId From[User] u inner join UsersInRoles ur on ur.Username = u.Username inner join Role r on ur.RoleID = r.RoleID  WHERE (u.ApprovalStatus = 'Pending' or (u.ApprovalStatus = 'Approved' and u.IsDeleted = 0)) ");
+
+            if (string.IsNullOrEmpty(searchKey))
+            {
+                usersList = context.Query<ExportDto>(sql.ToString()).ToList();
+            }
+            else
+            {
+                sql.Append(" AND (( u.Username LIKE '%" + searchKey + "%' )" + " OR (u.FirstName LIKE '%" + searchKey +
+                                   "%' )" + " OR (LastName LIKE '%" + searchKey + "%')" + " OR (Email LIKE '%" +
+                                   searchKey + "%')" + " OR (ApprovalStatus LIKE '%" + searchKey + "%')" +
+                                   " OR (RoleName LIKE '%" + searchKey + "%'))" + "");
+                usersList = context.Query<ExportDto>(sql.ToString()).ToList();
+            }
+            return usersList;
         }
 
         public IEnumerable<Role> GetRoleList()
@@ -384,7 +419,7 @@ namespace PermissionManagement.Repository
         public void AddRole(RoleViewModel roleToAdd)
         {
             roleToAdd.IsDeleted = false;
-           
+
             foreach (var m in roleToAdd.ModuleAccessList)
             {
                 m.RoleId = roleToAdd.CurrentRole.RoleId;
@@ -397,13 +432,15 @@ namespace PermissionManagement.Repository
                                                         (m => m.CreateAccess == true || m.DeleteAccess == true
                                                             || m.EditAccess == true || m.ViewAccess == true
                                                             || m.VerifyAccess == true || m.MakeOrCheckAccess == true
-                                                        ).ToList(),  excludeFieldList: new string[] { "ModuleName" }, transaction: t);
+                                                        ).ToList(), excludeFieldList: new string[] { "ModuleName" }, transaction: t);
 
             dapperContext.CommitTransaction();
         }
 
         public int EditRole(RoleViewModel roleToEdit)
         {
+            var dbVersion = GetRole(roleToEdit.CurrentRole.RoleId);
+            AuditRepository ar = new AuditRepository(dapperContext);
             var t = dapperContext.GetTransaction();
 
             var sql = "UPDATE Role SET RoleName = @RoleName, Description = @Description Where RoleId = @RoleId AND CONVERT(bigint,RowVersionNo) = @RowVersionNo2; ";
@@ -414,7 +451,7 @@ namespace PermissionManagement.Repository
 
                 sql = "UPDATE RoleModuleAccess SET ViewAccess = @ViewAccess, CreateAccess = @CreateAccess, EditAccess = @EditAccess, DeleteAccess = @DeleteAccess, VerifyAccess = @VerifyAccess, MakeOrCheckAccess = @MakeOrCheckAccess WHERE RoleId = @RoleID AND ModuleID = @ModuleID; ";
 
-                var temp =roleToEdit.ModuleAccessList.Where(m => (m.CreateAccess == true || m.DeleteAccess == true
+                var temp = roleToEdit.ModuleAccessList.Where(m => (m.CreateAccess == true || m.DeleteAccess == true
                                                                 || m.EditAccess == true || m.ViewAccess == true || m.VerifyAccess == true || m.MakeOrCheckAccess == true)
                                                                 && list.Contains(m.ModuleId)).Select(s => s).ToList();
 
@@ -440,6 +477,13 @@ namespace PermissionManagement.Repository
                 {
                     context.Execute("DELETE FROM RoleModuleAccess WHERE ModuleID IN @ModuleIDList AND RoleID = @RoleID; ", new { RoleID = roleToEdit.CurrentRole.RoleId, ModuleIDList = tempId }, transaction: t);
                 }
+
+                //List<string> moduleNames = new List<string>();
+                //foreach (var item in roleToEdit.ModuleAccessList)
+                //{
+                //    moduleNames.Add(item.ModuleName);
+                //}
+                ar.CreateAuditChange(dbVersion, roleToEdit, t, roleToEdit.CurrentRole.RoleName);// ,moduleNames.ToArray());
 
                 dapperContext.CommitTransaction();
             }
@@ -533,27 +577,27 @@ namespace PermissionManagement.Repository
 
         public void DeleteUser(string id, string optionTaken)
         {
-            var dbVersion = context.Query<User>("Select * from dbo.[User] where Username = @Username;", new { Username = id}).FirstOrDefault();
+            var dbVersion = context.Query<User>("Select * from dbo.[User] where Username = @Username;", new { Username = id }).FirstOrDefault();
             var incomingVersion = context.Query<User>("Select * from dbo.[User] where Username = @Username;", new { Username = id }).FirstOrDefault();
             incomingVersion.ApprovalStatus = string.IsNullOrEmpty(optionTaken) ? Constants.ApprovalStatus.Pending : optionTaken;
             var sql = new StringBuilder();
             var tr = dapperContext.GetTransaction();
 
             AuditRepository ar = new AuditRepository(dapperContext);
-           
+
             //To handle maker checker functions
             //maker checker can return the db version of an object depending on user action
             incomingVersion = ar.MakerCheckerHandller<User>(dbVersion, incomingVersion, Constants.OperationType.Delete, Constants.Modules.UserSetup, id, tr);
-            
+
             context.Update<User>(incomingVersion, databaseTableName: "[User]", excludeFieldList: new string[] { "RoleId", "UserRole", "ConfirmPassword" }, primaryKeyList: new string[] { "Username" }, transaction: tr);
 
-            ar.CreateAuditChange(dbVersion, incomingVersion, tr);
+            ar.CreateAuditChange(dbVersion, incomingVersion,  tr, incomingVersion.Username);
 
             dapperContext.CommitTransaction();
 
-         }
+        }
 
-     
+
         private string GetEntityNextID(string sequenceName, IDbTransaction dbTransaction)
         {
             var sql1 = new StringBuilder();
@@ -574,21 +618,185 @@ namespace PermissionManagement.Repository
 
         public bool DeleteRole(Guid id)
         {
-             bool status = false;
-             var du = context.Query<User>("Select * from dbo.[Role] where RoleID = @RoleID;", new { RoleID = id }).FirstOrDefault();
-             var roleExist = context.Query<Int64>("SELECT COUNT(Username) FROM UsersInRoles WHERE RoleID = @RoleID", new { RoleID = id }).FirstOrDefault();
-             if (roleExist == 0)
-             {
-                 var tr = dapperContext.GetTransaction();
-                 context.Execute("DELETE FROM RoleModuleAccess WHERE RoleID = @RoleID; DELETE FROM [Role] WHERE RoleID = @RoleID;", new { RoleID = id }, transaction: tr);
-                 AuditRepository ar = new AuditRepository(dapperContext);
-                 ar.CreateAuditChange(du, null, tr);
-                 status = true;
-             }
-             return status;
+            bool status = false;
+            var du = context.Query<Role>("Select * from dbo.[Role] where RoleID = @RoleID;", new { RoleID = id }).FirstOrDefault();
+            var roleExist = context.Query<Int64>("SELECT COUNT(Username) FROM UsersInRoles WHERE RoleID = @RoleID", new { RoleID = id }).FirstOrDefault();
+            if (roleExist == 0)
+            {
+                var tr = dapperContext.GetTransaction();
+                context.Execute("DELETE FROM RoleModuleAccess WHERE RoleID = @RoleID; DELETE FROM [Role] WHERE RoleID = @RoleID;", new { RoleID = id }, transaction: tr);
+                AuditRepository ar = new AuditRepository(dapperContext);
+                ar.CreateAuditChange(du, null, tr, du.RoleName);
+                status = true;
+            }
+            return status;
         }
-        
 
+        public bool UpdateUserInfo(User userDetails)
+        {
+            int QueryExecuteStatus = -1;
+            StringBuilder sql = new StringBuilder();
+            sql.Append(" UPDATE [dbo].[User]                      ");
+            sql.Append("SET [FirstName]     = @FirstName         ,");
+            sql.Append("[LastName]          = @LastName          ,");
+            sql.Append("[Email]             = @Email             ,");
+            sql.Append("[Telephone]         = @Telephone         ,");
+            sql.Append("[Password]          = @Password          ,");
+            sql.Append("[IsLockedOut]       = @IsLockedOut       ,");
+            sql.Append("[CreationDate]      = @CreationDate      ,");
+            sql.Append("[LastLogInDate]     = @LastLogInDate     ,");
+            sql.Append("[LastActivityDate]  = @LastActivityDate  ,");
+            sql.Append("[IsOnline]          = @IsOnline          ,");
+            sql.Append("[CurrentSessionID]  = @CurrentSessionID  ,");
+            sql.Append("[BadPasswordCount]  = @BadPasswordCount  ,");
+            sql.Append("[IsFirstLogin]      = @IsFirstLogin      ,");
+            //sql.Append("[RowVersionNo]      = @RowVersionNo      ,");
+            sql.Append("[InitiatedBy]       = @InitiatedBy       ,");
+            sql.Append("[StaffPosition]     = @StaffPosition     ,");
+            sql.Append("[Initial]           = @Initial           ,");
+            sql.Append("[AccountType]       = @AccountType       ,");
+            sql.Append("[BranchID]          = @BranchID          ,");
+            sql.Append("[ApprovalStatus]    = @ApprovalStatus    ,");
+            sql.Append("[ApprovedBy]        = @ApprovedBy        ,");
+            sql.Append("[ApprovalLogID]     = @ApprovalLogID     ,");
+            sql.Append("[IsDeleted]         = @IsDeleted         ,");
+            sql.Append("[IsDormented]       = @IsDormented       ,");
+            sql.Append("[AccountExpiryDate] = @AccountExpiryDate  ");
 
+            sql.Append("WHERE [Username]    = @Username           ");
+
+            QueryExecuteStatus = context.Execute(sql.ToString(), new
+             {
+                 FirstName = userDetails.FirstName,
+                 LastName = userDetails.LastName,
+                 Email = userDetails.Email,
+                 Telephone = userDetails.Telephone,
+                 Password = userDetails.Password,
+                 IsLockedOut = userDetails.IsLockedOut,
+                 CreationDate = userDetails.CreationDate,
+                 LastLogInDate = userDetails.LastLogInDate,
+                 LastActivityDate = userDetails.LastActivityDate,
+                 IsOnline = userDetails.IsOnline,
+                 CurrentSessionID = userDetails.CurrentSessionId,
+                 BadPasswordCount = userDetails.BadPasswordCount,
+                 IsFirstLogin = userDetails.IsFirstLogIn,
+                 //RowVersionNo = userDetails.RowVersionNo2,
+                 InitiatedBy = userDetails.InitiatedBy,
+                 StaffPosition = userDetails.StaffPosition,
+                 Initial = userDetails.Initial,
+                 AccountType = userDetails.AccountType,
+                 BranchID = userDetails.BranchID,
+                 ApprovalStatus = userDetails.ApprovalStatus,
+                 ApprovedBy = userDetails.ApprovedBy,
+                 ApprovalLogID = userDetails.ApprovalLogID,
+                 IsDeleted = userDetails.IsDeleted,
+                 IsDormented = userDetails.IsDormented,
+                 Username = userDetails.Username,
+                 AccountExpiryDate = userDetails.AccountExpiryDate
+             });
+            return QueryExecuteStatus == 1 ? true : false;
+        }
+
+        private void UpdateEditedStatus(User dbVersion, User editedVersion, int newUserDormentDays, int activeUserDormentDays, int accountExpiryDays)
+        {
+            #region Dorment / UnDorment
+            editedVersion.LastLogInDate = dbVersion.LastLogInDate;
+            editedVersion.CreationDate = dbVersion.CreationDate;
+
+            if (editedVersion.IsDormented != dbVersion.IsDormented)
+            {
+                if ((!editedVersion.IsDormented) && ((dbVersion.LastLogInDate == null) && dbVersion.CreationDate < DateTime.Now.AddDays(newUserDormentDays)))
+                {
+                    editedVersion.CreationDate = DateTime.Now;
+                    editedVersion.IsDormented = false;
+                }
+                else if ((!editedVersion.IsDormented) && (dbVersion.LastLogInDate < DateTime.Now.AddDays(activeUserDormentDays)))
+                {
+                    editedVersion.LastLogInDate = DateTime.Now;
+                    editedVersion.IsDormented = false;
+                }
+            }
+
+            #endregion
+
+            #region Account Expired / Extended
+            if (dbVersion.IsAccountExpired != editedVersion.IsAccountExpired)
+            {
+                if ((!editedVersion.IsAccountExpired) && ((dbVersion.IsAccountExpired) || dbVersion.AccountExpiryDate < DateTime.Now))
+                {
+                    editedVersion.AccountExpiryDate = DateTime.Now.AddDays(accountExpiryDays);
+                    editedVersion.IsAccountExpired = false;
+                }
+            }
+            #endregion
+
+            #region Account Locked / UnLocked
+            if (editedVersion.IsLockedOut != dbVersion.IsLockedOut)
+            {
+                if (!editedVersion.IsLockedOut)
+                {
+                    editedVersion.BadPasswordCount = 0;
+                }
+            }
+            #endregion
+        }
+
+        private void SetDormentStatus(User user)
+        {
+            if (user != null)
+            {
+                int newUserDormentDays = 0;
+                int activeUserDormentDays = 0;
+                int.TryParse(portalSettingsRepository.GetSettingByKey(Constants.PortalSettingsKeysConstants.NEWUSERIDDORMANTNUMBERDAYS).Value, out newUserDormentDays);
+                int.TryParse(portalSettingsRepository.GetSettingByKey(Constants.PortalSettingsKeysConstants.ACTIVEUSERIDDORMANTNUMBERDAYS).Value, out activeUserDormentDays);
+                user.IsDormented = ((user.IsDormented) ||
+                                    (user.LastLogInDate != null && user.LastLogInDate < DateTime.Now.AddDays((activeUserDormentDays * (-1)))) ||
+                                    (user.LastLogInDate == null) && user.CreationDate < DateTime.Now.AddDays((newUserDormentDays * (-1)))) ? true : false;
+                user.IsAccountExpired = (user.AccountExpiryDate != null && user.AccountExpiryDate <= DateTime.Now) ? true : false;
+            }
+        }
+
+        private void SetAccountExpiredStatus(User user)
+        {
+            if (user != null)
+            {
+                if (user.AccountExpiryDate < DateTime.Now.AddDays(1).AddMinutes(-1))
+                {
+                    user.IsAccountExpired = true;
+                }
+            }
+        }
+        private void SetMissingValues(User user, User dbVersion, string[] ignoreProperties = null)
+        {
+            bool ignorePropertyValueCopy = false;
+            PropertyInfo[] destinationProperties = user.GetType().GetProperties();
+            foreach (PropertyInfo destinationPi in destinationProperties)
+            {
+                if (destinationPi.GetValue(user) == null)
+                {
+                    if (ignoreProperties != null && ignoreProperties.Length > 0 )
+                    {
+                        for (int i = 0; i < ignoreProperties.Length; i++)
+                        {
+                            if (destinationPi.Name == ignoreProperties[i])
+                            {
+                                var ignorePropList = new List<string>(ignoreProperties);
+                                ignorePropList.RemoveAt(i);
+                                ignoreProperties = ignorePropList.ToArray();
+
+                                ignorePropertyValueCopy = true;
+                                break;
+                            }
+                        } 
+                    }
+                    if (!ignorePropertyValueCopy)
+                    {
+                        PropertyInfo sourcePi = dbVersion.GetType().GetProperty(destinationPi.Name);
+                        destinationPi.SetValue(user, sourcePi.GetValue(dbVersion, null), null);
+                        ignorePropertyValueCopy = false;
+                    }
+                }
+            }
+        }
     }
 }

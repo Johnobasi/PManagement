@@ -1,9 +1,9 @@
-﻿using System;
+﻿using PermissionManagement.Model;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using PermissionManagement.Model;
 
 namespace PermissionManagement.Repository
 {
@@ -39,5 +39,7 @@ namespace PermissionManagement.Repository
         void AddUserForSessionMgmt(User userDetails);
         void UpdateUserRole(string username, Guid roleId);
         void UpdateUserRoleUserBranch(string username, Guid roleId, string branchCode);
+        bool UpdateUserInfo(User userDetails);
+        List<ExportDto> GetUserListForExcel(string searchKey);
     }
 }

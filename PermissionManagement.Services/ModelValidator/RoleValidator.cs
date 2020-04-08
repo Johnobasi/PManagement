@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using PermissionManagement.Model;
-using PermissionManagement.Validation;
+﻿using PermissionManagement.Model;
 using PermissionManagement.Repository;
-using PermissionManagement.Utility;
+using PermissionManagement.Validation;
 
 namespace PermissionManagement.Services
 {
