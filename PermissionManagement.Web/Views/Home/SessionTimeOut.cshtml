@@ -1,0 +1,31 @@
+﻿@using PermissionManagement.Utility;
+@{
+    ViewBag.Title = "Session TimeOut";
+    Layout = "~/Views/Shared/_Layout2.cshtml";
+}
+
+@section MainContent {
+
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0">
+            <h1 class="page-head-line">Session TimeOut</h1>
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <b>Session TimeOut</b>
+                </div>
+                <div class="panel-body" id="LoginDiv">
+                    <p>
+                        The user's session has expired.
+                        <br /><br />
+                         kindly login again to the Application.
+                        <br /><br />
+                        Thank you.
+                    </p>
+                </div>
+                <div class="panel-footer">
+                    <a href="@Helper.GetHomeURL()">Return to home page</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}

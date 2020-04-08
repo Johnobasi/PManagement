@@ -1,0 +1,17 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.RoleModuleAccess
+
+<tr>
+    @{var prefx = @ViewData["prefix"] + ".index";}
+    <input type="hidden" name="@prefx" value="@ViewData.Model.ModuleId" />
+    @{var fieldPrefix = string.Format("{0}[{1}].", ViewData["prefix"], ViewData.Model.ModuleId); }
+    @Html.Hidden(fieldPrefix + "ModuleId", ViewData.Model.ModuleId)
+    @Html.Hidden(fieldPrefix + "ModuleName", ViewData.Model.ModuleName)
+    <td>@Html.DisplayFor(model => model.ModuleName)</td>
+    <td>@Html.CheckBox(fieldPrefix + "ViewAccess", ViewData.Model.ViewAccess.HasValue ? ViewData.Model.ViewAccess.Value : false, new { onclick = "return validateViewAccess(this);" })</td>
+    <td>@Html.CheckBox(fieldPrefix + "VerifyAccess", ViewData.Model.VerifyAccess.HasValue ? ViewData.Model.VerifyAccess.Value : false, new { onclick = "return validateVerifyAccess(this);" })</td>
+    <td>@Html.CheckBox(fieldPrefix + "MakeOrCheckAccess", ViewData.Model.MakeOrCheckAccess.HasValue ? ViewData.Model.MakeOrCheckAccess.Value : false, new { onclick = "return validateMakeOrCheckAccess(this);" })</td>
+    <td>@Html.CheckBox(fieldPrefix + "CreateAccess", ViewData.Model.CreateAccess.HasValue ? ViewData.Model.CreateAccess.Value : false, new { onclick = "return validateCreateAccess(this);" })</td>
+    <td>@Html.CheckBox(fieldPrefix + "EditAccess", ViewData.Model.EditAccess.HasValue ? ViewData.Model.EditAccess.Value : false, new { onclick = "return validateEditAccess(this);" })</td>
+    <td>@Html.CheckBox(fieldPrefix + "DeleteAccess", ViewData.Model.DeleteAccess.HasValue ? ViewData.Model.DeleteAccess.Value : false, new { onclick = "return validateDeleteAccess(this);" })</td>
+</tr>

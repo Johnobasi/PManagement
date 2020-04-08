@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:tns="http://schemas.datacontract.org/2004/07/EntrustWrapper.Model" elementFormDefault="qualified" targetNamespace="http://schemas.datacontract.org/2004/07/EntrustWrapper.Model" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:import schemaLocation="http://172.16.249.199/EntrustWrapper/AuthWrapper.svc?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+  <xs:complexType name="SynchroRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="SerialNum" nillable="true" type="xs:string" />
+      <xs:element xmlns:q1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="responses" nillable="true" type="q1:ArrayOfstring" />
+      <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SynchroRequest" nillable="true" type="tns:SynchroRequest" />
+  <xs:complexType name="ResponseModel">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ResponseCode" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ResponseMessage" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="ResponseModel" nillable="true" type="tns:ResponseModel" />
+  <xs:complexType name="RequestModel">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="userId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="RequestModel" nillable="true" type="tns:RequestModel" />
+  <xs:complexType name="UserCheckResponseModel">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="ResponseCode" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ResponseMessage" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="UserInfo" nillable="true" type="tns:UserBasicInfo" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UserCheckResponseModel" nillable="true" type="tns:UserCheckResponseModel" />
+  <xs:complexType name="UserBasicInfo">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Fullname" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="UserId" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UserBasicInfo" nillable="true" type="tns:UserBasicInfo" />
+  <xs:complexType name="UnlockClearQAResponseModel">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="QResponse" nillable="true" type="tns:QResponse" />
+      <xs:element minOccurs="0" name="ResponseCode" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ResponseMessage" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UnlockClearQAResponseModel" nillable="true" type="tns:UnlockClearQAResponseModel" />
+  <xs:complexType name="QResponse">
+    <xs:sequence>
+      <xs:element xmlns:q2="http://schemas.microsoft.com/2003/10/Serialization/Arrays" minOccurs="0" name="Qs" nillable="true" type="q2:ArrayOfstring" />
+      <xs:element minOccurs="0" name="ResponseCode" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="ResponseMessage" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="QResponse" nillable="true" type="tns:QResponse" />
+  <xs:complexType name="AuthRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CustID" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="PassCode" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AuthRequest" nillable="true" type="tns:AuthRequest" />
+  <xs:complexType name="AuthResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Authenticated" type="xs:boolean" />
+      <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="AuthResponse" nillable="true" type="tns:AuthResponse" />
+  <xs:complexType name="UpdateUserRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Email" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="FullName" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Phone" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="UserID" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="UpdateUserRequest" nillable="true" type="tns:UpdateUserRequest" />
+  <xs:complexType name="SerialNoRequest">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="CustID" nillable="true" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SerialNoRequest" nillable="true" type="tns:SerialNoRequest" />
+  <xs:complexType name="SerialNoResponse">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="Message" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Serialno" nillable="true" type="xs:string" />
+      <xs:element minOccurs="0" name="Success" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SerialNoResponse" nillable="true" type="tns:SerialNoResponse" />
+</xs:schema>

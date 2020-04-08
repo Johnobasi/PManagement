@@ -1,0 +1,89 @@
+﻿@using PermissionManagement.Utility;
+@model IEnumerable<PermissionManagement.Model.Role>
+
+@{
+    ViewBag.Title = "List Role";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section MainContent {
+    <div class="row">
+    <div class="col-md-12">
+        <h1 class="page-head-line">List Role</h1>
+        <p>
+            @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
+            if (status)
+            {
+                @Html.ActionLink("Create New", "CreateRole")
+            }
+            }
+        </p>
+        <hr />
+        <div class="table-responsive">
+            <table id="RoleListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>
+                            Edit
+                        </th>
+                        <th>
+                            Delete
+                        </th>
+                        <th>
+                            Role Name
+                        </th>
+                        <th>
+                            Role Description
+                        </th>
+                    </tr>
+                </thead>
+                @{var status2 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Edit); }
+                @{var status3 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Delete); }
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.ActionLink(status2 ? "Edit" : "View", "EditRole", new { id = item.RoleId })
+                        </td>
+                        <td class="center-block">
+                            @if (status3)
+                            {
+                                <p>
+                                    <a href="@Html.GetPostUrl("UserSetup/DeleteRole", item.RoleId.ToString())">
+                                        <span class="glyphicon glyphicon-remove-sign center-block"></span>
+                                    </a>
+                                </p>
+                                @Html.Hidden("RoleId", item.RoleId.ToString());
+                            }
+                            else
+                            {
+                                @Html.Raw("Delete")
+                            }
+                        </td>
+                        <td>
+                            @item.RoleName
+                        </td>
+                        <td>
+                            @item.Description
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+        <hr />
+            <p>
+                 @if (status)
+                 {
+                      @Html.ActionLink("Create New", "CreateRole")
+                 }
+            </p>
+        </div>
+    </div>
+}
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#RoleListTbl').dataTable();
+        });
+    </script>
+}

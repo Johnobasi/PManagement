@@ -1,0 +1,127 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.RoleViewModel
+@{
+    ViewBag.Title = "Edit Role";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section MainContent {
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="row">
+
+            <div class="form-horizontal col-md-8 col-md-offset-2 col-sm-8 col-sm-offset-2 col-xs-12 col-xs-offset-0">
+                <h1 class="page-head-line">Edit Role</h1>
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @{Html.RenderPartial("RoleEditor");}
+            </div>
+        </div>
+    }
+}
+@section scripts {
+     <script type="text/javascript">
+
+         function validateVerifyAccess(sender) {
+
+             ctrl = sender;
+             var verifyCheck = document.getElementById(ctrl.id);
+             if (verifyCheck.checked == true) {  // if verify access is checked, uncheck all others, except view access
+                 var makeOrCheck = document.getElementById(ctrl.id.replace("VerifyAccess", "MakeOrCheckAccess"));
+                 makeOrCheck.checked = false;
+                 var createCheck = document.getElementById(ctrl.id.replace("VerifyAccess", "CreateAccess"));
+                 createCheck.checked = false;
+                 var editCheck = document.getElementById(ctrl.id.replace("VerifyAccess", "EditAccess"));
+                 editCheck.checked = false;
+                 var deleteCheck = document.getElementById(ctrl.id.replace("VerifyAccess", "DeleteAccess"));
+                 deleteCheck.checked = false;
+                 var viewCheck = document.getElementById(ctrl.id.replace("VerifyAccess", "ViewAccess"));
+                 viewCheck.checked = true;
+             }
+         }
+
+         function validateMakeOrCheckAccess(sender) {
+
+             ctrl = sender;
+             var MakeOrCheck = document.getElementById(ctrl.id);
+             if (MakeOrCheck.checked == true) {  // if MakeOrCheck access is checked, uncheck verify and check all others
+                 var verifyCheck = document.getElementById(ctrl.id.replace("MakeOrCheckAccess", "VerifyAccess"));
+                 verifyCheck.checked = false;
+                 var createCheck = document.getElementById(ctrl.id.replace("MakeOrCheckAccess", "CreateAccess"));
+                 createCheck.checked = true;
+                 var editCheck = document.getElementById(ctrl.id.replace("MakeOrCheckAccess", "EditAccess"));
+                 editCheck.checked = true;
+                 var deleteCheck = document.getElementById(ctrl.id.replace("MakeOrCheckAccess", "DeleteAccess"));
+                 deleteCheck.checked = true;
+                 var viewCheck = document.getElementById(ctrl.id.replace("MakeOrCheckAccess", "ViewAccess"));
+                 viewCheck.checked = true;
+             }
+         }
+
+         function validateViewAccess(sender) {
+
+             ctrl = sender;
+             var viewCheck = document.getElementById(ctrl.id);
+             if (viewCheck.checked == false) {  // if view access is unchecked, uncheck all others.
+                 var createCheck = document.getElementById(ctrl.id.replace("ViewAccess", "CreateAccess"));
+                 createCheck.checked = false;
+                 var editCheck = document.getElementById(ctrl.id.replace("ViewAccess", "EditAccess"));
+                 editCheck.checked = false;
+                 var deleteCheck = document.getElementById(ctrl.id.replace("ViewAccess", "DeleteAccess"));
+                 deleteCheck.checked = false;
+                 var verifyCheck = document.getElementById(ctrl.id.replace("ViewAccess", "VerifyAccess"));
+                 verifyCheck.checked = false;
+                 var makeOrCheck = document.getElementById(ctrl.id.replace("ViewAccess", "MakeOrCheckAccess"));
+                 makeOrCheck.checked = false;
+             }
+         }
+
+         function validateCreateAccess(sender) {
+
+             ctrl = sender;
+             var createCheck = document.getElementById(ctrl.id);
+             if (createCheck.checked == true) {  // if create access is checked, check view access too.
+                 var viewCheck = document.getElementById(ctrl.id.replace("CreateAccess", "ViewAccess"));
+                 viewCheck.checked = true;
+                 var editCheck = document.getElementById(ctrl.id.replace("CreateAccess", "EditAccess"));
+                 editCheck.checked = true;
+                 var verifyCheck = document.getElementById(ctrl.id.replace("CreateAccess", "VerifyAccess"));
+                 verifyCheck.checked = false;
+                 var makeOrCheck = document.getElementById(ctrl.id.replace("CreateAccess", "MakeOrCheckAccess"));
+                 makeOrCheck.checked = true;
+
+             }
+         }
+
+         function validateEditAccess(sender) {
+
+             ctrl = sender;
+             var editCheck = document.getElementById(ctrl.id);
+
+             if (editCheck.checked == true) {  // if edit access is checked, check view
+                 var viewCheck = document.getElementById(ctrl.id.replace("EditAccess", "ViewAccess"));
+                 viewCheck.checked = true;
+                 var verifyCheck = document.getElementById(ctrl.id.replace("EditAccess", "VerifyAccess"));
+                 verifyCheck.checked = false;
+                 var makeOrCheck = document.getElementById(ctrl.id.replace("EditAccess", "MakeOrCheckAccess"));
+                 makeOrCheck.checked = true;
+             }
+         }
+
+         function validateDeleteAccess(sender) {
+
+             ctrl = sender;
+             var deleteCheck = document.getElementById(ctrl.id);
+             if (deleteCheck.checked == true) {  // if delete access is checked, check view.
+                 var viewCheck = document.getElementById(ctrl.id.replace("DeleteAccess", "ViewAccess"));
+                 viewCheck.checked = true;
+                 var verifyCheck = document.getElementById(ctrl.id.replace("DeleteAccess", "VerifyAccess"));
+                 verifyCheck.checked = false;
+                 var makeOrCheck = document.getElementById(ctrl.id.replace("DeleteAccess", "MakeOrCheckAccess"));
+                 makeOrCheck.checked = true;
+             }
+         }
+
+   </script>
+}

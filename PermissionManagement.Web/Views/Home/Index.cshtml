@@ -1,0 +1,72 @@
+﻿@using PermissionManagement.Utility;
+@{
+    ViewBag.Title = "Administration Home Page";
+}
+@section MainContent{
+    
+<div class="row">
+    <div class="col-md-12">
+         <h1 class="page-head-line">@Helper.GetCompanyName() - Administration Home</h1>
+         <h1 class="page-subhead-line"> Welcome @Helper.GetLoggedInUser(), please click a menu item above to navigate to the operation area of your choice.</h1>
+  </div>
+</div>
+<div class="row">
+    <div class="col-md-6 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Setup</b>
+            </div>
+            <div class="panel-body">
+                <p>Use this option to perform setup related activities and data entry. For full option details, click Setup menu on the side navigation.</p>
+            </div>
+            <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/setup/companyinformation">Company Information</a> | <a href="@Helper.GetRootURL()/setup/CreateRole">CreateRole</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Admin</b>
+            </div>
+            <div class="panel-body">
+                <p>Use this option to perform administration related functions. For full option details, click Administration menu on the side navigation.</p>
+            </div>
+            <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/admin">Administration</a>
+            </div>
+        </div>
+    </div>
+   </div>
+
+   <div class="row">
+       <div class="col-md-6 col-sm-6">
+           <div class="panel panel-primary">
+               <div class="panel-heading">
+                   <b>Reports</b>
+               </div>
+               <div class="panel-body">
+                   <p>Use this option to view and run different available reports. For full option details, click Reports menu on the side navigation.</p>
+               </div>
+               <div class="panel-footer">
+                   <a href="@Helper.GetRootURL()/reports">Reports</a>
+               </div>
+           </div>
+       </div>
+
+       <div class="col-md-6 col-sm-6">
+           <div class="panel panel-primary">
+               <div class="panel-heading">
+                   <b>Audit Trail</b>
+               </div>
+               <div class="panel-body">
+                   <p>Use this option to perform setup related activities and data entry. For full option details, click Setup menu on the side navigation.</p>
+               </div>
+               <div class="panel-footer">
+                   <a href="@Helper.GetRootURL()/AuditTrail">AuditTrail</a>
+               </div>
+           </div>
+       </div>
+</div>
+}

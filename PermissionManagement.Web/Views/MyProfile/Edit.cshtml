@@ -1,0 +1,121 @@
+﻿@model PermissionManagement.Model.User
+
+@{
+    ViewBag.Title = "My Profile";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section MainContent {
+    
+    @using (Html.BeginForm())
+    {
+    @Html.AntiForgeryToken()
+        
+        <div class="row">
+
+            <div class="form-horizontal col-md-12 col-sm-8 col-xs-12 col-xs-offset-0">
+                <h1 class="page-head-line">My Profile</h1>
+                @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+                @Html.HiddenFor(model => model.RoleId)
+                @Html.Hidden("RowVersionNo2", Model.RowVersionNo2.ToString())
+                @Html.HiddenFor(model => model.Initial)
+              
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Username, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.Username, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = true } })
+                                @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Initial, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.DropDownList("Initial", new SelectList(Html.StaffInitialDropDownList(), "StaffInitialID", "Description", Model.Initial), new { id = "Initial", @class = "form-control input-sm", @disabled = "disabled" })
+                                @Html.ValidationMessageFor(model => model.Initial, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.FirstName, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.FirstName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                @Html.ValidationMessageFor(model => model.FirstName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.LastName, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.LastName, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                @Html.ValidationMessageFor(model => model.LastName, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Email, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.Email, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                @Html.ValidationMessageFor(model => model.Email, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.Telephone, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.Telephone, new { htmlAttributes = new { @class = "form-control input-sm" } })
+                                @Html.ValidationMessageFor(model => model.Telephone, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+           
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.StaffPosition, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.EditorFor(model => model.StaffPosition, new { htmlAttributes = new { @class = "form-control input-sm", @readonly = true } })
+                                @Html.ValidationMessageFor(model => model.StaffPosition, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 col-sm-6 col-xs-12">
+                        <div class="form-group">
+                            @Html.LabelFor(model => model.RoleId, htmlAttributes: new { @class = "control-label col-md-2" })
+                            <div class="col-md-10">
+                                @Html.DropDownList("RoleId", new SelectList(Html.RoleDropDownList(), "RoleId", "RoleName", Model.UserRole.RoleId != Guid.Empty ? Model.UserRole.RoleId.ToString() : Guid.Empty.ToString()), new { id = "RoleId", @class = "form-control input-sm", @disabled = "disabled" })
+                                @Html.ValidationMessageFor(model => model.UserRole.RoleId, "", new { @class = "text-danger" })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <input type="submit" value="Save" class="form-control btn-primary" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+  }
+

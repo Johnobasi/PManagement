@@ -1,0 +1,416 @@
+
+/*=============================================================
+    Authour URI: www.binarytheme.com
+    License: Commons Attribution 3.0
+
+    http://creativecommons.org/licenses/by/3.0/
+
+    100% To use For Personal And Commercial Use.
+    IN EXCHANGE JUST GIVE US CREDITS AND TELL YOUR FRIENDS ABOUT US
+   
+    ========================================================  */
+
+
+/*==============================================
+    BASIC  STYLES    
+    =============================================*/
+body {
+    font-family: 'Open Sans', verdana, sans-serif;
+    line-height:20px;
+    font-size: 12px;
+}
+
+#wrapper {
+    width: 100%;
+    background: #02407B;
+}
+
+#page-wrapper {
+    padding: 15px 15px;
+    min-height: 600px;
+    background: #F3F3F3;
+}
+
+#page-inner {
+    width: 100%;
+    margin: 10px 20px 10px 0px;
+    background-color: #fff!important;
+    padding: 10px;
+    min-height: 1200px;
+}
+
+.page-head-line {
+    font-size: 20px;
+    text-transform: uppercase;
+    color: #000;
+    font-weight: 800;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #428bca;
+    margin-bottom: 10px;
+}
+
+.page-subhead-line {
+    font-size: 14px;
+    padding-top: 5px;
+    padding-bottom: 20px;
+    font-style:italic;
+    margin-bottom:30px;
+    border-bottom:1px dashed #428bca;
+
+}
+
+/*====================================
+    Glyph cicon size
+=====================================*/
+.gi-2x{font-size: 2em;}
+.gi-3x{font-size: 3em;}
+.gi-4x{font-size: 4em;}
+.gi-5x{font-size: 5em;}
+
+/*==============================================
+CUSTOM VALIDATION ERROR CLASS & TABLE SORT ICON
+==============================================*/
+
+/*  FORM ERROR*/
+.field-validation-error {
+    color: #b94a48;
+}
+
+.field-validation-valid {
+    display: none;
+}
+
+input.input-validation-error {
+    border: 1px solid #b94a48;
+}
+
+
+select.input-validation-error {
+    border: 1px solid #b94a48;
+}
+
+input[type="checkbox"].input-validation-error {
+    border: 0 none;
+}
+
+.validation-summary-errors {
+    color: #b94a48;
+}
+
+.validation-summary-valid {
+    display: none;
+}
+/* END FORM ERROR*/
+
+.form-control-error {
+	border-color: #a94442 !important;
+	-webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.075) !important;
+	box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075) !important;
+}
+
+/* ---------------   Pager ---------------------------  */
+.pagercontainer
+{
+    margin: 20px 0;
+    background: whitesmoke;    
+    padding-bottom:35px;
+    padding-top :7px;
+    padding-left:5px;
+    padding-right:5px;
+}
+.pagesize
+{
+    float: left;
+    font-size: 10pt;
+    text-align: left;
+}
+.pager
+{
+    float: right;
+    font-size: 10pt;
+    text-align: left;
+    margin : 0 0 0 0 !important;
+}
+.pagerbutton,.pagerbutton-selected,.pagertext
+{
+    display: block;        
+    float: left;    
+    text-align: center;
+    border: solid 2px navy;        
+    min-width: 18px;      
+    margin-left: 3px;    
+    text-decoration: none;        
+    padding: 4px;
+}
+.pagerbutton-selected
+{
+    font-size: 130%;
+    font-weight: bold;        
+    color: navy;
+    border-width: 0px;
+    background: khaki;
+}
+.pagerbutton-first
+{
+    margin-right: 12px;        
+}
+.pagerbutton-last,.pagerbutton-prev
+{
+    margin-left: 12px;        
+}
+.pagertext
+{
+    border: none;
+    margin-left: 7px;
+    font-weight: bold;
+}
+.pagerbutton a
+{
+    text-decoration: none;
+}
+.pagerbutton:hover
+{
+    background-color: navy;
+    color: cornsilk;
+}
+.pagerbutton-prev
+{
+    background-image: url(/FMNSalesForceServer/images/prev.png);
+    background-position: 2px center;
+    background-repeat: no-repeat;
+    width: 35px;
+    padding-left: 20px;
+}
+.pagerbutton-next
+{
+    background-image: url(/FMNSalesForceServer/images/next.png);
+    background-position: 40px center;
+    background-repeat: no-repeat;
+    width: 35px;
+    padding-right: 20px;
+    margin-right: 0px;
+}
+
+table th a.asc { padding: 0 2px 1px 25px; background: url(/Images/up-arrow.gif) left no-repeat !important; }	/* When column is sorted in acending order, show up arrow */
+table th a.desc { padding: 0 2px 1px 25px; background: url(/Images/down-arrow.gif) left no-repeat  !important; }	/* When column is sorted in descending order, show down arrow */
+/*table th.sorted { background: #6CA6CD  !important; }	/* Slightly darken background colour to highlight the sorted column */
+
+.listPicker {border:1px solid gray; padding:3px 3px 3px 3px;height:250px;overflow:scroll;}
+.listPicker input { float: right;}
+.modal-header {
+  background-color: #428bca !important;
+  color:#FFFFFF !important;
+}
+/* A small table */
+.itemtable2 tr td { border-left: 0 !important;}
+.clear { clear: both; }
+.navbar-brand {
+	margin-top: -10px !important;
+    margin-bottom: 15px !important;
+}
+
+/* for test pager*/
+.pagination > .attempted > a,
+.pagination > .attempted > span,
+.pagination > .attempted > a:hover,
+.pagination > .attempted > span:hover,
+.pagination > .attempted > a:focus,
+.pagination > .attempted > span:focus {
+  z-index: 2  !important;
+  color: #fff  !important;
+  background-color: #022442 !important;
+  border-color: #022442 !important;
+}
+/*==============================================
+    MENU STYLES    
+ =============================================*/
+
+
+.navbar-cls-top .navbar-brand {
+    color: #fff;
+    background: #04024F;
+    width: 260px;
+    text-align: center;
+    height: 75px;
+    font-size: 20px;
+    letter-spacing: 1px;
+    font-weight: 900;
+    padding-top: 25px;
+    text-transform:uppercase;
+}
+
+.header-right {
+    color: #fff;
+    padding:  15px 10px 5px 10px;
+    float: right;
+    font-size: 16px;
+}
+
+.navbar-cls-top .navbar-brand:hover {
+    background: #02407B;
+    color: #fff;
+}
+
+.user-img-div {
+    min-height: 140px;
+    padding: 20px;
+    background-color: #4380B8;
+}
+
+    .user-img-div img {
+        max-height: 60px;
+    }
+
+    .user-img-div .inner-text {
+        text-align: right;
+        position: relative;
+        color: #fff;
+        font-weight: 800;
+        line-height: 25px;
+    }
+
+.active-menu {
+    background-color: #02407B!important;
+}
+.active-menu-top {
+    background-color: #02407B!important;
+}
+
+.arrow {
+    float: right;
+}
+
+.fa.arrow:before {
+    content: "\f104";
+}
+
+.active > a > .fa.arrow:before {
+    content: "\f107";
+}
+
+
+.nav-second-level li,
+.nav-third-level li {
+    border-bottom: none !important;
+}
+
+    .nav-second-level li a {
+        padding-left: 37px;
+    }
+
+    .nav-third-level li a {
+        padding-left: 55px;
+    }
+
+.sidebar-collapse, .sidebar-collapse .nav {
+    background: none;
+}
+
+    .sidebar-collapse .nav {
+        padding: 0;
+    }
+
+        .sidebar-collapse .nav > li > a {
+            color: #fff;
+            background: #02407B;
+            text-shadow: none;
+            padding: 15px 40px;
+            border-bottom: 1px solid #2165A4;
+        }
+
+    .sidebar-collapse > .nav > li > a {
+        padding: 15px 10px;
+    }
+
+    .sidebar-collapse .nav > li > a:hover,
+    .sidebar-collapse .nav > li > a:focus {
+        background: #428bca;
+        outline: 0;
+    }
+
+
+
+.nav-second-level > li:last-child > a:after,
+.nav-third-level > li:last-child > a:after {
+    height: 50%;
+}
+
+.nav-third-level > li > a:after,
+.nav-third-level > li > a:before {
+    left: 40px;
+}
+
+.navbar-side {
+    border: none;
+    background-color: #02407B;
+}
+
+.navbar-cls-top {
+    background: #428bca;
+    border-bottom: none;
+}
+
+
+.navbar-default {
+    border: 0px solid black;
+}
+
+.navbar-header {
+    background: #04024F;
+}
+
+.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+    background-color: #02407B;
+}
+
+.navbar-default .navbar-toggle {
+    border-color: #fff;
+}
+
+    .navbar-default .navbar-toggle .icon-bar {
+        background-color: #FFF;
+    }
+
+.nav > li > a > i {
+    margin-right: 10px;
+}
+/*==============================================
+    FOOTER  STYLES    
+    =============================================*/
+#footer-sec {
+    background-color:#428bca;
+    padding:20px 50px;
+    color:#fff;
+    font-size:11px;
+    text-align:center;
+}
+
+    #footer-sec a {
+        color:#fff;
+    }
+    #footer-sec a:hover,a:focus {
+        color:#fff;
+        text-decoration:none;
+    }
+/*==============================================
+    MEDIA QUERIES     
+    =============================================*/
+
+@media (min-width:768px) {
+    #page-wrapper {
+        margin: 0 0 0 260px;
+        padding: 15px 30px;
+        min-height: 1200px;
+    }
+
+
+    .navbar-side {
+        z-index: 1;
+        position: absolute;
+        width: 260px;
+    }
+
+    .navbar {
+        border-radius: 0px;
+    }
+}

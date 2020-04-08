@@ -1,0 +1,18 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.ItemListingDto
+
+<tr>
+    @{var prefx = @ViewData["prefix"] + ".index";}
+    <input type="hidden" name="@prefx" value="@ViewData.Model.ApprovalLogID" />
+    @{var fieldPrefix = string.Format("{0}[{1}].", ViewData["prefix"], ViewData.Model.ApprovalLogID);
+      var cmt = string.IsNullOrEmpty(ViewData.Model.LastComment) ? "N/A" : ViewData.Model.LastComment;
+    }
+    @Html.Hidden(fieldPrefix + "ApprovalLogID", ViewData.Model.ApprovalLogID)
+    @Html.Hidden(fieldPrefix + "ActivityName", ViewData.Model.ActivityName)
+
+    <td>@Html.DisplayFor(model => model.ActivityName)</td>
+    <td><a href="@Model.ActivityUrl"> Link to Page </a></td>
+    <td>@Html.DisplayFor(model => model.InitiatorID)</td>
+    <td>@Html.DisplayFor(model => model.ApprovalStatus)</td>
+    <td>@cmt</td>
+</tr>

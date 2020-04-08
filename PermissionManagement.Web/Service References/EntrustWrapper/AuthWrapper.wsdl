@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:wsap="http://schemas.xmlsoap.org/ws/2004/08/addressing/policy" xmlns:wsa10="http://www.w3.org/2005/08/addressing" xmlns:tns="http://tempuri.org/" xmlns:msc="http://schemas.microsoft.com/ws/2005/12/wsdl/contract" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:wsx="http://schemas.xmlsoap.org/ws/2004/09/mex" xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy" xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:wsaw="http://www.w3.org/2006/05/addressing/wsdl" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" name="AuthWrapper" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xsd:schema targetNamespace="http://tempuri.org/Imports">
+      <xsd:import schemaLocation="http://172.16.249.199/EntrustWrapper/AuthWrapper.svc?xsd=xsd0" namespace="http://tempuri.org/" />
+      <xsd:import schemaLocation="http://172.16.249.199/EntrustWrapper/AuthWrapper.svc?xsd=xsd1" namespace="http://schemas.microsoft.com/2003/10/Serialization/" />
+      <xsd:import schemaLocation="http://172.16.249.199/EntrustWrapper/AuthWrapper.svc?xsd=xsd2" namespace="http://schemas.datacontract.org/2004/07/EntrustWrapper.Model" />
+      <xsd:import schemaLocation="http://172.16.249.199/EntrustWrapper/AuthWrapper.svc?xsd=xsd3" namespace="http://schemas.microsoft.com/2003/10/Serialization/Arrays" />
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="IAuthWrapper_SynchronizeToken_InputMessage">
+    <wsdl:part name="parameters" element="tns:SynchronizeToken" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_SynchronizeToken_OutputMessage">
+    <wsdl:part name="parameters" element="tns:SynchronizeTokenResponse" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_UnlockUser_InputMessage">
+    <wsdl:part name="parameters" element="tns:UnlockUser" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_UnlockUser_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UnlockUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_CheckUser_InputMessage">
+    <wsdl:part name="parameters" element="tns:CheckUser" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_CheckUser_OutputMessage">
+    <wsdl:part name="parameters" element="tns:CheckUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_UnlockUserandClearQA_InputMessage">
+    <wsdl:part name="parameters" element="tns:UnlockUserandClearQA" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_UnlockUserandClearQA_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UnlockUserandClearQAResponse" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_AuthMethod_InputMessage">
+    <wsdl:part name="parameters" element="tns:AuthMethod" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_AuthMethod_OutputMessage">
+    <wsdl:part name="parameters" element="tns:AuthMethodResponse" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_UpdateUserDetails_InputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateUserDetails" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_UpdateUserDetails_OutputMessage">
+    <wsdl:part name="parameters" element="tns:UpdateUserDetailsResponse" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_GetTokenSerial_InputMessage">
+    <wsdl:part name="parameters" element="tns:GetTokenSerial" />
+  </wsdl:message>
+  <wsdl:message name="IAuthWrapper_GetTokenSerial_OutputMessage">
+    <wsdl:part name="parameters" element="tns:GetTokenSerialResponse" />
+  </wsdl:message>
+  <wsdl:portType name="IAuthWrapper">
+    <wsdl:operation name="SynchronizeToken">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/SynchronizeToken" message="tns:IAuthWrapper_SynchronizeToken_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/SynchronizeTokenResponse" message="tns:IAuthWrapper_SynchronizeToken_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUser">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/UnlockUser" message="tns:IAuthWrapper_UnlockUser_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/UnlockUserResponse" message="tns:IAuthWrapper_UnlockUser_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="CheckUser">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/CheckUser" message="tns:IAuthWrapper_CheckUser_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/CheckUserResponse" message="tns:IAuthWrapper_CheckUser_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUserandClearQA">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/UnlockUserandClearQA" message="tns:IAuthWrapper_UnlockUserandClearQA_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/UnlockUserandClearQAResponse" message="tns:IAuthWrapper_UnlockUserandClearQA_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="AuthMethod">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/AuthMethod" message="tns:IAuthWrapper_AuthMethod_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/AuthMethodResponse" message="tns:IAuthWrapper_AuthMethod_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="UpdateUserDetails">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/UpdateUserDetails" message="tns:IAuthWrapper_UpdateUserDetails_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/UpdateUserDetailsResponse" message="tns:IAuthWrapper_UpdateUserDetails_OutputMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="GetTokenSerial">
+      <wsdl:input wsaw:Action="http://tempuri.org/IAuthWrapper/GetTokenSerial" message="tns:IAuthWrapper_GetTokenSerial_InputMessage" />
+      <wsdl:output wsaw:Action="http://tempuri.org/IAuthWrapper/GetTokenSerialResponse" message="tns:IAuthWrapper_GetTokenSerial_OutputMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="BasicHttpBinding_IAuthWrapper" type="tns:IAuthWrapper">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="SynchronizeToken">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/SynchronizeToken" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUser">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/UnlockUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CheckUser">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/CheckUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UnlockUserandClearQA">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/UnlockUserandClearQA" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AuthMethod">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/AuthMethod" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="UpdateUserDetails">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/UpdateUserDetails" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetTokenSerial">
+      <soap:operation soapAction="http://tempuri.org/IAuthWrapper/GetTokenSerial" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="AuthWrapper">
+    <wsdl:port name="BasicHttpBinding_IAuthWrapper" binding="tns:BasicHttpBinding_IAuthWrapper">
+      <soap:address location="http://172.16.249.199/EntrustWrapper/AuthWrapper.svc" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

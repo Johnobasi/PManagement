@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:tns="http://tempuri.org/" xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" targetNamespace="http://tempuri.org/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://tempuri.org/">
+      <s:element name="ADAuthenticator">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="username" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="password" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ADAuthenticatorResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ADAuthenticatorResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroups">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="username" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="password" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="GetGroupsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="GetGroupsResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ADValidateUser">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="username" type="s:string" />
+            <s:element minOccurs="0" maxOccurs="1" name="password" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ADValidateUserResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ADValidateUserResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ADUserDetails">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="username" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ADUserDetailsResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ADUserDetailsResult" type="s:string" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="ADAuthenticatorSoapIn">
+    <wsdl:part name="parameters" element="tns:ADAuthenticator" />
+  </wsdl:message>
+  <wsdl:message name="ADAuthenticatorSoapOut">
+    <wsdl:part name="parameters" element="tns:ADAuthenticatorResponse" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupsSoapIn">
+    <wsdl:part name="parameters" element="tns:GetGroups" />
+  </wsdl:message>
+  <wsdl:message name="GetGroupsSoapOut">
+    <wsdl:part name="parameters" element="tns:GetGroupsResponse" />
+  </wsdl:message>
+  <wsdl:message name="ADValidateUserSoapIn">
+    <wsdl:part name="parameters" element="tns:ADValidateUser" />
+  </wsdl:message>
+  <wsdl:message name="ADValidateUserSoapOut">
+    <wsdl:part name="parameters" element="tns:ADValidateUserResponse" />
+  </wsdl:message>
+  <wsdl:message name="ADUserDetailsSoapIn">
+    <wsdl:part name="parameters" element="tns:ADUserDetails" />
+  </wsdl:message>
+  <wsdl:message name="ADUserDetailsSoapOut">
+    <wsdl:part name="parameters" element="tns:ADUserDetailsResponse" />
+  </wsdl:message>
+  <wsdl:portType name="ServiceSoap">
+    <wsdl:operation name="ADAuthenticator">
+      <wsdl:input message="tns:ADAuthenticatorSoapIn" />
+      <wsdl:output message="tns:ADAuthenticatorSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="GetGroups">
+      <wsdl:input message="tns:GetGroupsSoapIn" />
+      <wsdl:output message="tns:GetGroupsSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ADValidateUser">
+      <wsdl:input message="tns:ADValidateUserSoapIn" />
+      <wsdl:output message="tns:ADValidateUserSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ADUserDetails">
+      <wsdl:input message="tns:ADUserDetailsSoapIn" />
+      <wsdl:output message="tns:ADUserDetailsSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="ServiceSoap" type="tns:ServiceSoap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="ADAuthenticator">
+      <soap:operation soapAction="http://tempuri.org/ADAuthenticator" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroups">
+      <soap:operation soapAction="http://tempuri.org/GetGroups" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ADValidateUser">
+      <soap:operation soapAction="http://tempuri.org/ADValidateUser" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ADUserDetails">
+      <soap:operation soapAction="http://tempuri.org/ADUserDetails" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="ServiceSoap12" type="tns:ServiceSoap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="ADAuthenticator">
+      <soap12:operation soapAction="http://tempuri.org/ADAuthenticator" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="GetGroups">
+      <soap12:operation soapAction="http://tempuri.org/GetGroups" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ADValidateUser">
+      <soap12:operation soapAction="http://tempuri.org/ADValidateUser" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ADUserDetails">
+      <soap12:operation soapAction="http://tempuri.org/ADUserDetails" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="Service">
+    <wsdl:port name="ServiceSoap" binding="tns:ServiceSoap">
+      <soap:address location="http://172.16.249.199/FBNServices/service.asmx" />
+    </wsdl:port>
+    <wsdl:port name="ServiceSoap12" binding="tns:ServiceSoap12">
+      <soap12:address location="http://172.16.249.199/FBNServices/service.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

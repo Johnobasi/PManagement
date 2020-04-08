@@ -1,0 +1,77 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.RoleViewModel
+
+<div>
+    @Html.ActionLink("Back to List", "ListRole")    |
+    @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Create);
+    if (status)
+    {
+        @Html.ActionLink("Create New Role", "CreateRole")
+    }
+    }
+</div>
+<hr />
+<div>
+    @Html.Hidden("CurrentRole.RoleId", Model.CurrentRole.RoleId)
+    @Html.Hidden("CurrentRole.RowVersionNo2", Model.CurrentRole.RowVersionNo2.ToString())
+</div>
+
+<div class="form-group">
+    @Html.LabelFor(model => model.CurrentRole.RoleName, htmlAttributes: new { @class = "control-label col-md-2" })
+    <div class="col-md-10">
+        @if (Model.CurrentRole.RoleId != Guid.Empty)
+        {
+            @Html.EditorFor(model => model.CurrentRole.RoleName, new { id = "CurrentRole.RoleName", placeholder = "Enter role name...", htmlAttributes = new { @class = "form-control input-sm", @readonly = true } })
+        }
+        else
+        {
+            @Html.EditorFor(model => model.CurrentRole.RoleName, new { id = "CurrentRole.RoleName", placeholder = "Enter role name...", htmlAttributes = new { @class = "form-control input-sm" } })
+        }
+        @Html.ValidationMessageFor(model => model.CurrentRole.RoleName)
+    </div>
+</div>
+<div class="form-group">
+    @Html.LabelFor(model => model.CurrentRole.Description, htmlAttributes: new { @class = "control-label col-md-2" })
+    <div class="col-md-10">
+        @Html.TextAreaFor(model => model.CurrentRole.Description, new { id = "CurrentRole.Description", maxlength = "256", placeholder = "Enter role description...", @class = "form-control input-sm", rows = 4 })
+        @Html.ValidationMessageFor(model => model.CurrentRole.Description)
+    </div>
+</div>
+<strong>Select/Edit access rights.</strong>
+<hr />
+<div class="table-responsive">
+    <table class="table  table-bordered table-striped table-hover" cellspacing="0">
+        <thead>
+            <tr>
+                <td><strong>Module Name</strong></td>
+                <td><strong>View</strong></td>
+                <td><strong>Verify</strong></td>
+                <td><strong>MakeOrCheck</strong></td>
+                <td><strong>Create</strong></td>
+                <td><strong>Edit</strong></td>
+                <td><strong>Delete</strong></td>
+            </tr>
+        </thead>
+        @foreach (var module in Model.ModuleAccessList)
+        {
+            Html.RenderPartial("ModuleAccessEditor", module, new ViewDataDictionary(ViewData) { { "prefix", "ModuleAccessList" } });
+        }
+    </table>
+</div>
+<hr />
+<p>
+    @{var status2 = Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Edit);
+    if (status2)
+    {
+        <input type="submit" value="Save" class="form-control btn-primary" />
+    }
+    }
+</p>
+<hr />
+<div>
+    @Html.ActionLink("Back to List", "ListRole")    |
+    @if (status)
+    {
+        @Html.ActionLink("Create New Role", "CreateRole")
+    }
+</div>

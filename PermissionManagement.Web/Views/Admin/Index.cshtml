@@ -1,0 +1,102 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.ItemListingResponse
+
+@{
+   ViewBag.Title = "Administration Home Page";
+}
+@section MainContent {
+
+ <div class="row">
+    <div class="col-md-12">
+        <h1 class="page-head-line">@Helper.GetCompanyName() - Administration Home</h1>
+        <h1 class="page-subhead-line"> Welcome @Helper.GetLoggedInUser(), please click a menu item above to navigate to the operation area of your choice.</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Activities Requiring your Attention </b>
+            </div>
+            <div class="panel-body">
+                    <p>Items pending your attention. For full details on each item, click the Activity url.</p>
+    <div class="table-responsive">
+        <table id="ItemListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Activity Name</th>
+                    <th>Activity Url</th>
+                    <th>InitiatorID</th>
+                    <th>Approval Status</th>
+                    <th>Approver Comment</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ItemListingResult)
+                {
+                    Html.RenderPartial("ListItemPendingAttention", item);
+                }
+            </tbody>
+        </table>
+        </div>
+        </div>
+        <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/UserSetup/ListUser">List Users</a>
+            </div>
+        </div>
+    </div>
+  </div>
+
+<div class="row">
+    <div class="col-md-6 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Setup</b>
+            </div>
+            <div class="panel-body">
+                <p>Use this option to perform setup related activities and data entry. For full option details, click Setup menu on the side navigation.</p>
+            </div>
+            <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/UserSetup/ListUser">List Users</a> | <a href="@Helper.GetRootURL()/UserSetup/CreateUser">Create Users</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Administration</b>
+            </div>
+            <div class="panel-body">
+                <p>Use this option to perform administration related functions. For full option details, click Administration menu on the side navigation.</p>
+            </div>
+            <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/admin">Administration</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="row">
+        <div class="col-md-6 col-sm-6">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <b>Reports</b>
+                </div>
+                <div class="panel-body">
+                    <p>Use this option to view and run different available reports. For full option details, click Reports menu on the side navigation.</p>
+                </div>
+                <div class="panel-footer">
+                    <a href="@Helper.GetRootURL()/reports">Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+@section scripts {
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#ItemListTbl').dataTable();
+        });
+    </script>
+}

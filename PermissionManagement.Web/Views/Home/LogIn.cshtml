@@ -1,0 +1,52 @@
+﻿@model PermissionManagement.Model.LogInDto
+
+@{
+    ViewBag.Title = "Log In";
+    Layout = "~/Views/Shared/_Layout2.cshtml";
+}
+
+@section MainContent {
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+ 
+    <div class="row">
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="col-md-8 col-md-offset-2 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0">
+            <h1 class="page-head-line">Permission Management Login</h1>
+            <div class="panel-body" id="LoginDiv">
+                <h5>
+                    Please enter your username and password to log in to the application
+                </h5>
+                @Html.ValidationMessageFor(model => model.Username, "", new { @class = "text-danger" })
+                <div class="form-group input-group">
+                    <span class="input-group-addon"><i class="fa fa-tag"></i></span>
+                    @Html.EditorFor(model => model.Username, new { htmlAttributes = new { @class = "form-control input-sm", placeholder = "Your Username", maxlength = 32 } })
+                </div>
+                @Html.ValidationMessageFor(model => model.Password, "", new { @class = "text-danger" })
+                <div class="form-group input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                    @Html.EditorFor(model => model.Password, new { htmlAttributes = new { @class = "form-control input-sm", type = "Password", placeholder = "Your Password", maxlength = 32 } })
+                </div>
+                @{var status7 = Access.Is2FAEnabled();
+                if (status7)
+                {
+                @Html.ValidationMessageFor(model => model.TokenCode, "", new { @class = "text-danger" })
+                <div class="form-group input-group">
+                    <span class="input-group-addon"><i class="fa fa-lock"></i></span>
+                    @Html.EditorFor(model => model.TokenCode, new { htmlAttributes = new { @class = "form-control input-sm", type = "Password", placeholder = "Your Token Code", maxlength = 8 } })
+                </div>
+                }
+                }
+
+                <span class="pull-right"><a href="ResetPassword">Forgotten your password?</a></span>
+                <div>
+                    <input type="submit" value="Log In" class="btn btn-primary" />
+                </div>
+            </div>
+        </div>
+    </div>
+      
+    }
+} 

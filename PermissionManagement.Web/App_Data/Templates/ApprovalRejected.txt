@@ -1,0 +1,27 @@
+﻿<html>
+<body style="color:grey; font-size:15px;">
+<font face="Helvetica, Arial, sans-serif">
+
+<div style="position:absolute; height:100px;
+width:600px; background-color:0d1d36; padding:30px;">
+<img src="[ROOTURL]/Images/fbnlogo.jpg" />
+</div>
+
+<br/>
+<br/>
+
+<div style="background-color: #ece8d4;
+width:600px; height:200px; padding:30px; margin-top:30px;">
+
+<p>Dear [FULLNAME],<p>
+
+<p>Your Request has been Rejected with the following comment</p>
+<p><strong>[REJECTIONCOMMENT].</strong></p>
+<p>Kindly re-initiate another request if necessary.</p>
+<p>Please login to the application or click the link <a href="[Here]"> Here </a> to login and view the rejected record.</p>
+
+<br/>
+<p>Thank you</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+﻿@model IEnumerable<PermissionManagement.Model.AuditChangeDiff>
+
+
+    <div class="table-responsive">
+        <table id="ChangeListTbl" class="table table-bordered table-striped table-hover display">
+            <tr>
+                <th>
+                    @Html.DisplayNameFor(model => model.PropertyName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.OldValue)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.NewValue)
+                </th>
+            </tr>
+
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.PropertyName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.OldValue)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NewValue)
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>

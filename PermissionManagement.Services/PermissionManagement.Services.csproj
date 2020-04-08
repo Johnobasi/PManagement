@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B6B37023-2319-451A-B916-022CC1E75D86}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>PermissionManagement.Services</RootNamespace>
+    <AssemblyName>PermissionManagement.Services</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DataTables.Mvc">
+      <HintPath>..\PermissionManagement.Web\Dependencies\DataTables.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Implementation\AuditService.cs" />
+    <Compile Include="Interface\IAuditService.cs" />
+    <Compile Include="Interface\IMessageService.cs" />
+    <Compile Include="Interface\ILogService.cs" />
+    <Compile Include="Interface\ICacheService.cs" />
+    <Compile Include="Implementation\CacheService.cs" />
+    <Compile Include="Implementation\LogService .cs" />
+    <Compile Include="Interface\ISecurityService.cs" />
+    <Compile Include="Implementation\Messageservice.cs" />
+    <Compile Include="ModelValidator\RoleValidator.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Implementation\SecurityService.cs" />
+    <Compile Include="ModelValidator\RoleProfileModelValidator.cs" />
+    <Compile Include="ModelValidator\UserValidator.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PermissionManagement.Model\PermissionManagement.Model.csproj">
+      <Project>{1082f1bd-79ac-4f84-ab84-5b460fd563e8}</Project>
+      <Name>PermissionManagement.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PermissionManagement.Repository\PermissionManagement.Repository.csproj">
+      <Project>{a412cb30-cca7-456d-b106-19b78db513d8}</Project>
+      <Name>PermissionManagement.Repository</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PermissionManagement.Utility\PermissionManagement.Utility.csproj">
+      <Project>{807a5198-b932-478e-8ff2-52cb7d830dfb}</Project>
+      <Name>PermissionManagement.Utility</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\PermissionManagement.Validation\PermissionManagement.Validation.csproj">
+      <Project>{f07d7388-bbb8-4d57-863e-b6fbd22bfbf4}</Project>
+      <Name>PermissionManagement.Validation</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

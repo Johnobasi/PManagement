@@ -1,0 +1,56 @@
+﻿@using PermissionManagement.Utility;
+@using System.Web.Mvc.Html;
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="description" content="Permission Management Solution" />
+    <meta name="keywords" content="Permission Management Solution" />
+    <meta name='expires' content='never' />
+    <meta name='language' content='english, EN' />
+    <meta charset="utf-8" />
+    <meta name='charset' content='ISO-8859-1' />
+    <meta name='distribution' content='Global' />
+    <meta name='copyright' content='Copyright ©2016' />
+    @*<meta name="author" content="IT Solutions" />*@
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css' />
+    <title>@Helper.GetCompanyName() - @ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Styles.Render("~/Content/jqueryui")
+    <link href="@Url.Content("~/Content/style.css")" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <nav class="navbar navbar-default">
+        <div class="container">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="@Helper.GetRootURL()"><img src="~/Images/fbnlogo.jpg" alt="" /></a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right"></ul>
+            </div>
+        </div>
+    </nav>
+    <div id="page-wrapper">
+        <div class="row">
+            <!-- Page Header -->
+            <div class="col-md-6 col-md-offset-3 col-sm-6 col-sm-offset-3 col-xs-12 col-xs-offset-0">
+                <div>
+                    @{ Html.RenderPartial("_Alerts"); }
+                    @RenderSection("MainContent", required: true)     
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="footerwrap">
+        <span class="copyright">&copy;@DateTime.Now.Year  @*<a href="http://www.polarisbanklimited.com" _target="blank" class="go-top">IT Bespoke Solutions.</a>*@ All Rights Reserved </span>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/jqueryval")
+    @RenderSection("scripts", required: false)
+
+</body>
+</html>

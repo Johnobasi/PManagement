@@ -1,0 +1,164 @@
+﻿@using PermissionManagement.Utility;
+@model PermissionManagement.Model.AuditTrailListingResponse
+
+@{
+    ViewBag.Title = "Audit Trail";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section MainContent {
+    <div class="row">
+        <div class="col-md-12">
+            <h1 class="page-head-line"> Audit Trail</h1>
+            <p>
+                @{var status = Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View);
+                  if (status)
+                  { 
+                      @Html.ActionLink("Audit Change", "AuditChange")
+                  }
+                  }
+                <button type="button" class="btn btn-default btn-md search-button" id="search-button" style="float:right;">
+                    <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
+                </button>
+                <button type="button" class="btn btn-default btn-md refresh-button" id="refresh-button" style="float:right;">
+                    <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> Refresh
+                </button>
+            </p>
+            <hr/>
+            <div class="table-responsive">
+                <table id="AuditTrailListTbl" class="table table-bordered table-striped table-hover display" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Audit Action</th>
+                            <th>Action StartTime</th>
+                            <th>Action EndTime</th>
+                            <th>Client IP Address</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+                </table>
+     </div>
+   <hr />
+         <p>
+            @if (status)
+            { 
+                @Html.ActionLink("View Audit Change", "AuditChange")            
+            }
+          </p>
+     </div>
+ </div>
+}
+@section scripts {
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+
+            function formatDate(date1) {
+
+                var date = new Date(date1);
+                var hours = date.getHours();
+                var minutes = date.getMinutes();
+                var secs = date.getSeconds();
+
+                hours = hours < 10 ? '0' + hours : hours;
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                secs = secs < 10 ? '0' + secs : secs;
+                var strTime = hours + ':' + minutes + ':' + secs;
+                var monthNumber = date.getMonth() + 1;
+
+                return date.getDate() + "/" + monthNumber + "/" + date.getFullYear() + "  " + strTime;
+            };
+
+            var itemListVM = {
+                dt: null,
+
+                init: function () {
+                    var purl = "@Helper.GetRootURL()" + "/Audit/ListAuditTrailData";
+                    //$.fn.dataTable.ext.errMode = 'none';
+                    dt = $('#AuditTrailListTbl')
+                        .DataTable({
+                        initComplete: function () {
+                            var api = this.api();
+                            $('#AuditTrailListTbl_filter input')
+                            .off('.DT')
+                            .on('keyup.DT', function (e) {
+                                if (e.keyCode == 13) {
+                                    api.search(this.value).draw();
+                                }
+                            });
+                        },
+                        "filter": false,
+                        "processing": true,
+                        "language": {
+                            "processing": "<span class='glyphicon glyphicon-refresh glyphicon-refresh-animate gi-5x'></span>"
+                        },
+                        "serverSide": true,
+                        "ajax": { "url": purl, "type": "POST" },
+                        "columns": [
+                            { "title": "Username", "data": "Username" },
+                            { "title": "Audit Action", "data": "AuditAction" },
+                            {
+                                "title": "Action StartTime", "data": "ActionStartTime",
+                                "render": function (data, type, full, meta) {
+                                    return formatDate(data);
+                                }
+                            },
+                            {
+                                "title": "Action EndTime", "data": "ActionEndTime",
+                                "render": function (data, type, full, meta) {
+                                    return formatDate(data);
+                                }
+                            },
+                            { "title": "Client IP Address", "data": "ClientIPAddress" },
+                            { "title": "Message", "data": "AuditMessage" }
+                        ],
+                        "lengthMenu": [[10, 20, 50], [10, 20, 50]]
+                    });
+                    yadcf.init(dt, [{
+                        column_number: 0,
+                        filter_type: "text"
+                    }, {
+                        column_number: 1,
+                        filter_type: "text"
+                    },
+                    {
+                         column_number: 2,
+                         filter_type: "range_date",
+                         date_format: "dd/mm/yyyy",
+                         filter_delay: 500
+                    },
+                    {
+                          column_number: 3,
+                          filter_type: "range_date",
+                          date_format: "dd/mm/yyyy",
+                          filter_delay: 500
+                    }
+                    ],
+                    {
+                        externally_triggered: true
+                    });
+                },
+
+                refresh: function () {
+                    dt.ajax.reload();
+                },
+
+                search: function () {
+                    yadcf.exFilterExternallyTriggered(dt);
+                }
+            }
+
+            $('#refresh-button').on("click", itemListVM.refresh);
+            $('#search-button').on("click", itemListVM.search);
+
+            /////////////////////////////////////////////////////////////////
+            // Let's kick it all off
+            itemListVM.init();
+        })
+    </script>
+}
+
+
+
+

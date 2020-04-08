@@ -1,0 +1,115 @@
+﻿@using PermissionManagement.Utility;
+@using System.Web.Mvc.Html;
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta name="description" content="PermissionManagementSolution" />
+    <meta name="keywords" content="PermissionManagementSolution" />
+    <meta name='expires' content='never' />
+    <meta name='language' content='english, EN' />
+    <meta charset="utf-8" />
+    <meta name='charset' content='ISO-8859-1' />
+    <meta name='distribution' content='Global' />
+    <meta name='copyright' content='Copyright ©2016' />
+    <meta name="author" content="Solutions" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700,900' rel='stylesheet' type='text/css' />
+    <title>@Helper.GetCompanyName() - @ViewBag.Title</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/Content/jqueryui")
+    <link href="@Url.Content("~/Content/basic.css")" rel="stylesheet" type="text/css" />
+    <link href="@Url.Content("~/Content/custom.css")" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+    <div id="wrapper">
+        <!-- navbar top -->
+        <nav class="navbar navbar-default navbar-cls-top " role="navigation" id="navbar" style="margin-bottom: 0">
+            <!-- navbar-header -->
+            <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" href="@Helper.GetRootURL()/admin"><img src="~/Images/fbnlogo.jpg" alt="" /></a>
+                    </div>
+                    <!-- end navbar-header -->
+                    <!-- navbar-top-links -->
+                    <div class="header-right">
+                        <div class="pull-left">
+                            <p><font style="font-size:12px;padding-right:10px;">Welcome, <strong>@Helper.GetLoggedInUser()</strong></font></p>
+                            <p><font style="font-size:10px;padding-right:10px;">Last Login: <span id="lastLogin"></span></font></p>
+                        </div>
+                        <a href="@Helper.GetLoginUrl()" class="btn btn-danger pull-right" title="Log in/out"><i class="fa fa-sign-@Helper.GetLoginState() fa-fw"></i></a>
+                    </div>
+                    <!-- end navbar-top-links -->
+        </nav>
+               <!-- navbar side -->
+        <nav class="navbar-default navbar-side" role="navigation">
+            <!-- sidebar-collapse -->
+            <div class="sidebar-collapse">
+                <ul class="nav" id="main-menu">
+                    @Html.GetSideMenu()
+                </ul>
+            </div>
+            <!-- end sidebar-collapse -->
+        </nav>
+        <!--  page-wrapper -->
+        <div id="page-wrapper">
+            <div id="page-inner">
+                @{ Html.RenderPartial("_Alerts"); }
+                @RenderSection("MainContent", required: true)
+            </div>
+        </div>
+        <!-- end page-wrapper -->
+        <div id="footer-sec">
+            <span class="copyright">&copy;@DateTime.Now.Year  @*<a href="http://www.abc.com" _target="blank" class="go-top">ABC Solutions.</a>*@ All Rights Reserved </span>
+        </div>
+    </div>
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/jqueryui")
+    @Scripts.Render("~/bundles/jqueryval")
+    @RenderSection("scripts", required: false)
+
+    <script type="text/javascript">
+
+        var rootUrl = "@Html.GetRootUrl()";
+        var timeoutInSec = "@Html.GetTimeOutInMilliseconds()";
+
+        $(document).ready(function () {
+            $('.readonly').find('input, textarea, select').attr('readonly', 'readonly');
+        });
+        $(document).ready(function () {
+            $.ajax({
+                method: "POST",
+                url: "@PermissionManagement.Utility.Helper.GetRootURL()" + "/Home/LastLogin",
+                data: { id: "@PermissionManagement.Utility.Helper.GetLoggedInUserID()" },
+                success: function (result) {
+                    console.log(result);
+                    $('#lastLogin').html('').append(result);
+                }
+            })
+        });
+
+        $(document).ready(function () {
+            heartBeat();
+        });
+
+        function heartBeat() {
+            setInterval("heartBeat2()", timeoutInSec);
+        }
+
+        function heartBeat2() {
+            var d = new Date();
+            var curr_hour = d.getHours();
+            var curr_min = d.getMinutes();
+            window.location.href = rootUrl + "/LogOut?xxkeyxx=" + curr_hour + ":" + curr_min;
+        }
+
+    </script>
+</body>
+</html>
