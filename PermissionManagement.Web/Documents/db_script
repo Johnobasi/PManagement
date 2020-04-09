@@ -1,0 +1,350 @@
+CREATE TABLE [dbo].[User] (
+    [Username]          VARCHAR (50)     NOT NULL,
+    [FirstName]         VARCHAR (25)     NOT NULL,
+    [LastName]          VARCHAR (25)     NOT NULL,
+    [Email]             VARCHAR (256)    NOT NULL,
+    [Telephone]         VARCHAR (25)     NOT NULL,
+    [Password]          VARCHAR (128)    NOT NULL,
+    [IsLockedOut]       BIT              NOT NULL,
+    [CreationDate]      DATETIME         NOT NULL,
+    [LastLogInDate]     DATETIME         NULL,
+    [LastActivityDate]  DATETIME         NULL,
+    [IsOnline]          BIT              NOT NULL,
+    [CurrentSessionID]  UNIQUEIDENTIFIER NOT NULL,
+    [BadPasswordCount]  INT              NOT NULL,
+    [IsFirstLogin]      BIT              NOT NULL,
+    [RowVersionNo]      ROWVERSION       NOT NULL,
+    [InitiatedBy]       VARCHAR (32)     NULL,
+    [StaffPosition]     VARCHAR (35)     NULL,
+    [Initial]           VARCHAR (5)      NULL,
+    [AccountType]       VARCHAR (20)     NOT NULL,
+    [BranchID]          VARCHAR (20)     NULL,
+    [ApprovalStatus]    VARCHAR (32)     NULL,
+    [ApprovedBy]        VARCHAR (32)     NULL,
+    [ApprovalLogID]     BIGINT           NULL,
+    [IsDeleted]         BIT              NOT NULL,
+    [AccountExpiryDate] DATE             NULL,
+    [IsDormented]       BIT              NULL,
+    [IsAccountExpired]  BIT              NULL,
+    CONSTRAINT [PK_User_1] PRIMARY KEY CLUSTERED ([Username] ASC)
+);
+
+
+GO
+CREATE UNIQUE NONCLUSTERED INDEX [IX_User]
+    ON [dbo].[User]([CurrentSessionID] ASC);
+
+CREATE TABLE [dbo].[ApprovalLog] (
+    [ApprovalLogID]      BIGINT         IDENTITY (1, 1) NOT NULL,
+    [InitiatorID]        VARCHAR (32)   NULL,
+    [PossibleVerifierID] VARCHAR (256)  NULL,
+    [VerifierID]         VARCHAR (32)   NULL,
+    [ActivityName]       VARCHAR (50)   NULL,
+    [ApprovalStatus]     VARCHAR (32)   NOT NULL,
+    [ApprovalDate]       DATETIME       NULL,
+    [ActivityUrl]        VARCHAR (256)  NULL,
+    [RecordData]         VARCHAR (4000) NULL,
+    [LastComment]        VARCHAR (256)  NULL,
+    CONSTRAINT [PK_ApprovalLog] PRIMARY KEY CLUSTERED ([ApprovalLogID] ASC)
+);
+
+CREATE TABLE [dbo].[AuditChange] (
+    [AuditChangeID]    BIGINT        IDENTITY (1, 1) NOT NULL,
+    [TableName]        VARCHAR (MAX) NULL,
+    [AuditType]        VARCHAR (MAX) NULL,
+    [Username]         VARCHAR (256) NULL,
+    [ActionDateTime]   DATETIME      NOT NULL,
+    [ClientIPAddress]  VARCHAR (256) NULL,
+    [ValueBefore]      VARCHAR (MAX) NULL,
+    [ValueAfter]       VARCHAR (MAX) NULL,
+    [Changes]          VARCHAR (MAX) NULL,
+    [AffectedRecordID] NVARCHAR (60) NULL,
+    CONSTRAINT [PK_AuditChange] PRIMARY KEY CLUSTERED ([AuditChangeID] ASC)
+);
+
+CREATE TABLE [dbo].[AuditTrail] (
+    [AuditID]            BIGINT         IDENTITY (1, 1) NOT NULL,
+    [AuditAction]        VARCHAR (4000) NULL,
+    [AuditPage]          VARCHAR (512)  NULL,
+    [AuditType]          VARCHAR (256)  NULL,
+    [Username]           VARCHAR (45)   NULL,
+    [ActionStartTime]    DATETIME       NOT NULL,
+    [ActionEndTime]      DATETIME       NOT NULL,
+    [ActionDurationInMs] INT            NOT NULL,
+    [ClientIPAddress]    VARCHAR (45)   NULL,
+    [AuditMessage]       VARCHAR (256)  NULL,
+    [AuditData]          VARCHAR (1024) NULL,
+    [RowVersionNo]       ROWVERSION     NOT NULL,
+    [AuditHTTPAction]    NVARCHAR (50)  NULL,
+    CONSTRAINT [PK_AuditTrail] PRIMARY KEY CLUSTERED ([AuditID] ASC)
+);
+
+CREATE TABLE [dbo].[exceptionlog] (
+    [ExceptionId]       INT            IDENTITY (1, 1) NOT NULL,
+    [ExceptionDateTime] DATETIME       NOT NULL,
+    [ExceptionDetails]  VARCHAR (4000) NULL,
+    [ExceptionPage]     VARCHAR (256)  NULL,
+    [LoggedInUser]      VARCHAR (45)   NULL,
+    [UserIpAddress]     VARCHAR (45)   NULL,
+    [ExceptionType]     VARCHAR (256)  NULL,
+    [ExceptionMessage]  VARCHAR (1024) NULL,
+    [ExceptionVersion]  VARCHAR (32)   NULL,
+    CONSTRAINT [PK_exceptionlog] PRIMARY KEY CLUSTERED ([ExceptionId] ASC)
+);
+
+CREATE TABLE [dbo].[messageitem] (
+    [MessageId]           INT            IDENTITY (1, 1) NOT NULL,
+    [ToAddress]           VARCHAR (512)  NOT NULL,
+    [CcAddress]           VARCHAR (512)  DEFAULT (NULL) NULL,
+    [Subject]             VARCHAR (256)  NOT NULL,
+    [HtmlBody]            VARCHAR (4000) DEFAULT (NULL) NULL,
+    [TextBody]            VARCHAR (4000) NOT NULL,
+    [SentDate]            DATETIME       DEFAULT (NULL) NULL,
+    [RemainingRetryCount] INT            DEFAULT ((0)) NOT NULL,
+    [IsSending]           BIT            DEFAULT ((0)) NOT NULL,
+    [LastAttemptDate]     DATETIME       DEFAULT (NULL) NULL,
+    [LastFailureReason]   VARCHAR (128)  DEFAULT (NULL) NULL,
+    PRIMARY KEY CLUSTERED ([MessageId] ASC)
+);
+
+CREATE TABLE [dbo].[module] (
+    [ModuleId]          UNIQUEIDENTIFIER NOT NULL,
+    [ModuleName]        VARCHAR (128)    NOT NULL,
+    [ModuleDescription] VARCHAR (256)    NULL,
+    [IsModule]          BIT              NOT NULL,
+    [IsAdmin]           BIT              NOT NULL,
+    [RowVersionNo]      ROWVERSION       NOT NULL,
+    [IsDeleted]         BIT              NOT NULL,
+    CONSTRAINT [PK_module] PRIMARY KEY CLUSTERED ([ModuleId] ASC)
+);
+
+CREATE TABLE [dbo].[OperationError] (
+    [Id]               BIGINT        IDENTITY (1, 1) NOT NULL,
+    [IMTO]             NVARCHAR (32) NULL,
+    [OperationName]    NVARCHAR (64) NULL,
+    [ExceptionTime]    DATETIME      NULL,
+    [ExceptionDate]    INT           NULL,
+    [ExceptionMessage] VARCHAR (256) NULL,
+    [ExceptionDetails] VARCHAR (MAX) NULL,
+    CONSTRAINT [PK_OperationError] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[PasswordHistory] (
+    [Id]          BIGINT         IDENTITY (1, 1) NOT NULL,
+    [Username]    NVARCHAR (50)  NOT NULL,
+    [Password]    NVARCHAR (512) NOT NULL,
+    [CreatedTime] DATETIME       NOT NULL,
+    PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+CREATE TABLE [dbo].[PortalSettings] (
+    [PSID]  INT            IDENTITY (1, 1) NOT NULL,
+    [Key]   NVARCHAR (50)  NULL,
+    [Value] NVARCHAR (128) NULL,
+    PRIMARY KEY CLUSTERED ([PSID] ASC)
+);
+
+CREATE TABLE [dbo].[RemittanceDetails] (
+    [Id]                             BIGINT          IDENTITY (1, 1) NOT NULL,
+    [Imto]                           NVARCHAR (30)   NOT NULL,
+    [RemittanceTrackingCode]         NVARCHAR (50)   NOT NULL,
+    [ProcessStatus]                  NVARCHAR (20)   NOT NULL,
+    [PaymentStatus]                  NVARCHAR (20)   NOT NULL,
+    [TimeRetrieved]                  DATETIME        NOT NULL,
+    [DateRetrieved]                  INT             NOT NULL,
+    [TimeProcessed]                  DATETIME        NULL,
+    [PaymentReference]               NVARCHAR (50)   NULL,
+    [IsIMTOUpdated]                  NVARCHAR (1)    NOT NULL,
+    [IMTOUpdateTrialCount]           INT             NOT NULL,
+    [IMTOUpdateTime]                 DATETIME        NULL,
+    [SenderFirstName]                VARCHAR (30)    NULL,
+    [SenderMiddleName]               VARCHAR (30)    NULL,
+    [SenderLastName]                 VARCHAR (30)    NULL,
+    [SenderTelephoneNo]              VARCHAR (30)    NULL,
+    [SenderMobileNo]                 VARCHAR (30)    NULL,
+    [SenderEmail]                    VARCHAR (60)    NULL,
+    [SenderAddress]                  VARCHAR (200)   NULL,
+    [SenderNationalityCountryCode]   VARCHAR (30)    NULL,
+    [SenderBirthDate]                NVARCHAR (30)   NULL,
+    [ReceiverFirstName]              VARCHAR (35)    NULL,
+    [ReceiverMiddleName]             VARCHAR (35)    NULL,
+    [ReceiverLastName]               VARCHAR (35)    NULL,
+    [ReceiverTelephoneNo]            VARCHAR (30)    NULL,
+    [ReceiverMobileNo]               VARCHAR (30)    NULL,
+    [ReceiverEmail]                  VARCHAR (60)    NULL,
+    [ReceiverAddress]                VARCHAR (200)   NULL,
+    [ReceiverNationalityCountryCode] VARCHAR (30)    NULL,
+    [remittanceRecordingDate]        NVARCHAR (30)   NULL,
+    [sendingCountryCode]             VARCHAR (30)    NULL,
+    [destinationCountryCode]         VARCHAR (20)    NULL,
+    [payingAmount]                   DECIMAL (18, 2) NULL,
+    [payoutAmount]                   DECIMAL (18, 2) NULL,
+    [payingCurrencyCode]             VARCHAR (10)    NULL,
+    [payoutCurrencyCode]             VARCHAR (10)    NULL,
+    [payoutSettlementRate]           DECIMAL (18, 2) NULL,
+    [settlementPayoutAmount]         DECIMAL (18, 2) NULL,
+    [remittanceStatus]               VARCHAR (20)    NULL,
+    [recieveOrderCode]               VARCHAR (20)    NULL,
+    [sendingReason]                  VARCHAR (50)    NULL,
+    [recieverBankName]               VARCHAR (50)    NOT NULL,
+    [recieverBranchName]             VARCHAR (20)    NULL,
+    [recieverAccountNumber]          VARCHAR (20)    NULL,
+    [otherBank]                      VARCHAR (50)    NULL,
+    [payingToPayOutRate]             DECIMAL (18, 2) NULL,
+    [recieverBankCode]               VARCHAR (30)    NOT NULL,
+    [recieverBranchCode]             VARCHAR (30)    NULL,
+    [recieverRoutingNumber]          VARCHAR (30)    NULL,
+    [recieverSortCode]               VARCHAR (30)    NULL,
+    [recieverSwiftBIC]               VARCHAR (30)    NULL,
+    [ResponseCode]                   NVARCHAR (10)   NULL,
+    [ResponseMessage]                VARCHAR (90)    NULL,
+    [UserMessage]                    VARCHAR (128)   NULL,
+    [RequestReference]               NVARCHAR (32)   NULL,
+    [PostTrialCount]                 INT             NOT NULL,
+    [IMTOReason]                     NVARCHAR (60)   NULL,
+    [SenderFundSource]               NVARCHAR (128)  NULL,
+    [SenderOccupation]               NVARCHAR (100)  NULL,
+    [SenderIDType]                   NVARCHAR (30)   NULL,
+    [SenderIDNumber]                 NVARCHAR (60)   NULL,
+    [ReceiverIDType]                 NVARCHAR (30)   NULL,
+    [ReceiverIDNumber]               NVARCHAR (60)   NULL,
+    [PaymentStatusOverride]          NVARCHAR (1)    NULL,
+    [OverrideStatus]                 NVARCHAR (20)   NULL,
+    [OverrideActionBy]               NVARCHAR (20)   NULL,
+    [OverrideDateTime]               DATETIME        NULL,
+    CONSTRAINT [PK_Remittance_details] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_Remittance_details]
+    ON [dbo].[RemittanceDetails]([Imto] ASC, [RemittanceTrackingCode] ASC);
+
+CREATE TABLE [dbo].[RemittanceHeader] (
+    [Id]                     BIGINT         IDENTITY (1, 1) NOT NULL,
+    [IMTO]                   NVARCHAR (30)  NOT NULL,
+    [RemittanceTrackingCode] NVARCHAR (50)  NOT NULL,
+    [DateDownloaded]         INT            NOT NULL,
+    [IsDetailDownloaded]     NVARCHAR (1)   NOT NULL,
+    [TimeDownloaded]         DATETIME       NOT NULL,
+    [DetailDownloadResponse] NVARCHAR (10)  NULL,
+    [DetailDownloadMessage]  NVARCHAR (128) NULL,
+    [DetailDownloadTime]     DATETIME       NULL,
+    [DownloadTryCount]       INT            NOT NULL,
+    CONSTRAINT [PK_RemittanceHeader] PRIMARY KEY CLUSTERED ([Id] ASC)
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_RemittanceHeader]
+    ON [dbo].[RemittanceHeader]([IMTO] ASC, [RemittanceTrackingCode] ASC);
+
+CREATE TABLE [dbo].[RemittanceRawDetails] (
+    [IMTO]                   NVARCHAR (30)  NOT NULL,
+    [remittanceTrackingCode] NVARCHAR (50)  NOT NULL,
+    [rawData]                NVARCHAR (MAX) NULL,
+    CONSTRAINT [PK_RemittanceRawDetails] PRIMARY KEY CLUSTERED ([IMTO] ASC, [remittanceTrackingCode] ASC)
+);
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_remittanceRaw_details]
+    ON [dbo].[RemittanceRawDetails]([IMTO] ASC, [remittanceTrackingCode] ASC);
+
+CREATE TABLE [dbo].[role] (
+    [RoleId]       UNIQUEIDENTIFIER NOT NULL,
+    [RoleName]     VARCHAR (256)    NOT NULL,
+    [Description]  VARCHAR (256)    NULL,
+    [RowVersionNo] ROWVERSION       NOT NULL,
+    [IsDeleted]    BIT              NOT NULL,
+    CONSTRAINT [PK_role] PRIMARY KEY CLUSTERED ([RoleId] ASC)
+);
+
+CREATE TABLE [dbo].[rolemoduleaccess] (
+    [RoleId]            UNIQUEIDENTIFIER NOT NULL,
+    [ModuleId]          UNIQUEIDENTIFIER NOT NULL,
+    [CreateAccess]      BIT              NOT NULL,
+    [EditAccess]        BIT              NULL,
+    [DeleteAccess]      BIT              NULL,
+    [ViewAccess]        BIT              NULL,
+    [RowVersionNo]      ROWVERSION       NOT NULL,
+    [VerifyAccess]      BIT              NOT NULL,
+    [MakeOrCheckAccess] BIT              NOT NULL,
+    CONSTRAINT [PK_rolemoduleaccess] PRIMARY KEY CLUSTERED ([RoleId] ASC, [ModuleId] ASC),
+    CONSTRAINT [RoleModuleAccess_Module] FOREIGN KEY ([ModuleId]) REFERENCES [dbo].[module] ([ModuleId]),
+    CONSTRAINT [RoleModuleAccess_Role] FOREIGN KEY ([RoleId]) REFERENCES [dbo].[role] ([RoleId])
+);
+
+CREATE TABLE [dbo].[SequenceHandler] (
+    [SequenceName]      VARCHAR (50) NOT NULL,
+    [SequencePrefix]    VARCHAR (10) NULL,
+    [SequenceLength]    INT          NOT NULL,
+    [CurrentSequenceNo] INT          NOT NULL,
+    CONSTRAINT [PK_SequenceHandler] PRIMARY KEY CLUSTERED ([SequenceName] ASC)
+);
+
+CREATE TABLE [dbo].[StatementControl] (
+    [id]             BIGINT        IDENTITY (1, 1) NOT NULL,
+    [AcctNo]         VARCHAR (100) NOT NULL,
+    [Format]         CHAR (1)      NULL,
+    [Daily]          CHAR (1)      NULL,
+    [Weekly]         CHAR (1)      NULL,
+    [Monthly]        CHAR (1)      NULL,
+    [Channel]        CHAR (1)      NULL,
+    [CustomerName]   VARCHAR (200) NULL,
+    [CreatedBy]      VARCHAR (100) NULL,
+    [CreateDate]     DATETIME      NULL,
+    [Status]         INT           NULL,
+    [CustomFormat]   VARCHAR (20)  NULL,
+    [ApprovalStatus] INT           NULL,
+    [ApprovedBy]     VARCHAR (50)  NULL,
+    [ApprovalDate]   DATETIME      NULL,
+    [User_Sol_ID]    VARCHAR (50)  NULL,
+    CONSTRAINT [PK_StatementControl] PRIMARY KEY CLUSTERED ([AcctNo] ASC)
+);
+
+CREATE TABLE [dbo].[usersinroles] (
+    [Username]     VARCHAR (50)     NOT NULL,
+    [RoleId]       UNIQUEIDENTIFIER NOT NULL,
+    [RowVersionNo] ROWVERSION       NOT NULL,
+    [IsDeleted]    BIT              NOT NULL,
+    CONSTRAINT [PK_usersinroles] PRIMARY KEY CLUSTERED ([Username] ASC, [RoleId] ASC),
+    CONSTRAINT [FK_usersinroles_role] FOREIGN KEY ([RoleId]) REFERENCES [dbo].[role] ([RoleId]),
+    CONSTRAINT [FK_usersinroles_User] FOREIGN KEY ([Username]) REFERENCES [dbo].[User] ([Username])
+);
+
+INSERT INTO [dbo].[User] ([Username], [FirstName], [LastName], [Email], [Telephone], [Password], [IsLockedOut], [CreationDate], [LastLogInDate], [LastActivityDate], [IsOnline], [CurrentSessionID], [BadPasswordCount], [IsFirstLogin], [InitiatedBy], [StaffPosition], [Initial], [AccountType], [BranchID], [ApprovalStatus], [ApprovedBy], [ApprovalLogID], [IsDeleted], [AccountExpiryDate], [IsDormented], [IsAccountExpired]) VALUES (N'cagada', N'Charles', N'Agada', N'charles.agada@gmail.com', N'08037785338', N'ckFxQiFZq55EYPxq2at1bZcHLtE=', 0, N'2020-04-03 00:00:00', N'2020-04-09 00:36:10', N'2020-04-09 00:37:12', 1, N'd8bb09ef-952e-4671-b4a0-ab980009eff9', 0, 0, N'cagada', NULL, NULL, N'Local/Local', N'001', N'Approved', N'cagada', NULL, 0, NULL, NULL, NULL);
+INSERT INTO [dbo].[User] ([Username], [FirstName], [LastName], [Email], [Telephone], [Password], [IsLockedOut], [CreationDate], [LastLogInDate], [LastActivityDate], [IsOnline], [CurrentSessionID], [BadPasswordCount], [IsFirstLogin], [InitiatedBy], [StaffPosition], [Initial], [AccountType], [BranchID], [ApprovalStatus], [ApprovedBy], [ApprovalLogID], [IsDeleted], [AccountExpiryDate], [IsDormented], [IsAccountExpired]) VALUES (N'gsuleman', N'Gboyega', N'Suleman', N'gsuleman@polarisbanklimited.com', N'0123456555', N'2DV1OY5itYTguikM5Nw2q9/V25w=', 0, N'2020-04-08 18:45:26', N'2020-04-08 19:40:55', N'2020-04-08 19:40:55', 0, N'e597ac72-4b9b-4944-a27e-ab9701471a03', 0, 0, N'cagada', NULL, N'Dr', N'Local/Local', N'001', N'Approved', N'cagada', 4, 0, NULL, 0, 0);
+INSERT INTO [dbo].[User] ([Username], [FirstName], [LastName], [Email], [Telephone], [Password], [IsLockedOut], [CreationDate], [LastLogInDate], [LastActivityDate], [IsOnline], [CurrentSessionID], [BadPasswordCount], [IsFirstLogin], [InitiatedBy], [StaffPosition], [Initial], [AccountType], [BranchID], [ApprovalStatus], [ApprovedBy], [ApprovalLogID], [IsDeleted], [AccountExpiryDate], [IsDormented], [IsAccountExpired]) VALUES (N'jinyang', N'John', N'Inyang', N'jinyang@polarisbanklimited.com', N'080377853360', N'/vicqeSoPJwI5QseEh4Gh+otY4k=', 0, N'2020-04-08 00:00:00', N'2020-04-08 23:18:10', N'2020-04-08 23:24:17', 0, N'ce662397-666f-4a7a-8c22-ab970181c594', 0, 0, N'cagada', NULL, NULL, N'Local/Local', N'001', N'Approved', N'cagada', NULL, 0, NULL, NULL, NULL);
+
+
+INSERT INTO [dbo].[role] ([RoleId], [RoleName], [Description], [IsDeleted]) VALUES (N'1092a828-bfb1-4210-9194-ab970114e83a', N'Auditor', N'Auditor', 0);
+INSERT INTO [dbo].[role] ([RoleId], [RoleName], [Description], [IsDeleted]) VALUES (N'627aee7c-9ad4-4920-9f19-ab9701285d50', N'Maker', N'Maker', 0);
+INSERT INTO [dbo].[role] ([RoleId], [RoleName], [Description], [IsDeleted]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f6807d2ff2', N'Administrator', N'Application Administrator', 0);
+
+INSERT INTO [dbo].[usersinroles] ([Username], [RoleId], [IsDeleted]) VALUES (N'cagada', N'8aa26b32-49ed-426e-af7b-f8f6807d2ff2', 0);
+INSERT INTO [dbo].[usersinroles] ([Username], [RoleId], [IsDeleted]) VALUES (N'gsuleman', N'1092a828-bfb1-4210-9194-ab970114e83a', 0);
+INSERT INTO [dbo].[usersinroles] ([Username], [RoleId], [IsDeleted]) VALUES (N'jinyang', N'627aee7c-9ad4-4920-9f19-ab9701285d50', 0);
+
+
+INSERT INTO [dbo].[module] ([ModuleId], [ModuleName], [ModuleDescription], [IsModule], [IsAdmin], [IsDeleted]) VALUES (N'8aa26b32-49ed-426e-af7b-c1c2807d2cc1', N'Admin', N'Admin', 1, 1, 0);
+INSERT INTO [dbo].[module] ([ModuleId], [ModuleName], [ModuleDescription], [IsModule], [IsAdmin], [IsDeleted]) VALUES (N'9cd26b32-49ed-426e-af7b-f8f6807d2ab2', N'Audit', N'Audit Trail', 1, 1, 0);
+INSERT INTO [dbo].[module] ([ModuleId], [ModuleName], [ModuleDescription], [IsModule], [IsAdmin], [IsDeleted]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f6807d2cc1', N'UserSetup', N'User management', 1, 1, 0);
+INSERT INTO [dbo].[module] ([ModuleId], [ModuleName], [ModuleDescription], [IsModule], [IsAdmin], [IsDeleted]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f680a33cc1', N'Reports', N'Report Module', 1, 0, 0);
+
+
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'1092a828-bfb1-4210-9194-ab970114e83a', N'9cd26b32-49ed-426e-af7b-f8f6807d2ab2', 1, 1, 1, 1, 0, 1);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'1092a828-bfb1-4210-9194-ab970114e83a', N'8aa26b32-49ed-426e-af7b-f8f680a33cc1', 1, 1, 1, 1, 0, 1);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'627aee7c-9ad4-4920-9f19-ab9701285d50', N'8aa26b32-49ed-426e-af7b-f8f6807d2cc1', 1, 1, 0, 1, 0, 0);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'627aee7c-9ad4-4920-9f19-ab9701285d50', N'8aa26b32-49ed-426e-af7b-f8f680a33cc1', 0, 0, 0, 1, 0, 0);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f6807d2ff2', N'8aa26b32-49ed-426e-af7b-c1c2807d2cc1', 1, 1, 1, 1, 1, 1);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f6807d2ff2', N'9cd26b32-49ed-426e-af7b-f8f6807d2ab2', 1, 1, 1, 1, 1, 1);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f6807d2ff2', N'8aa26b32-49ed-426e-af7b-f8f6807d2cc1', 1, 1, 1, 1, 1, 1);
+INSERT INTO [dbo].[rolemoduleaccess] ([RoleId], [ModuleId], [CreateAccess], [EditAccess], [DeleteAccess], [ViewAccess], [VerifyAccess], [MakeOrCheckAccess]) VALUES (N'8aa26b32-49ed-426e-af7b-f8f6807d2ff2', N'8aa26b32-49ed-426e-af7b-f8f680a33cc1', 1, 1, 1, 1, 0, 1);
+
+SET IDENTITY_INSERT [dbo].[ApprovalLog] ON
+INSERT INTO [dbo].[ApprovalLog] ([ApprovalLogID], [InitiatorID], [PossibleVerifierID], [VerifierID], [ActivityName], [ApprovalStatus], [ApprovalDate], [ActivityUrl], [RecordData], [LastComment]) VALUES (1, N'jinyang', N'cagada', N'cagada', N'Create User', N'Approved', N'2020-04-08 18:45:53', N'http://localhost/PermissionManagement.Web/UserSetup/EditUser/gsuleman', N'+YmRN00gTbFXcdLuPvc6RlIK/un9ffHwrLqJJRA78+Q5bgUjk19haG8i9v074kbY8/vAEM1CTRmeS+7uCp0qYmLw5zDD0HtDed7rkc6qLqn58C+w1ZsV+G2GMZaHPUmr9+73c5YdLCMn+cvRwlaLEYdVGXXsaUpw5SjtLIu8ukRJ5pIH0w+Mq3b0+9sWaeMRJ5UVhXBbQSsjwDToSZkKZMehJMw1sBJAB7D1eJ0Mg9TAqmlWk6U6a8GKk2gc+lMX7YTi0zSurvRoNWNZ5HPuFKYKa7KQrJepYWlj+NYhY1nQL60EuxRq6hcTE68V5NmMS3k+SpLSCpzK6So4Kqhe/j8+IQnIzbc/7HByR0bWLE53LRCUu+SsIyXGkMnmhJar4qEH8wEJO8ilwwgfA0zUtpgKnBnC8Twp2F9xebiFzjW981XttqYCyp0xh/kw6LAnL+8ME2jqV/ClJw4H2JUtxlny/Vf9Rg76ydiKAyREMu4ocrsdjYVysc/luISKD9vHHd9UzY4Lwo+cN3yUpyW0yNDVON+m2VooKZ5bxdd1FHP87rBjbgFyDJk+wG0t83IKZC0sLsKx9V+EgCt6tZJ7l+ZZhcHOpk9sr63WWTcMnsqpQY3cgaWMIaihfuXHrlwF1LsNrl+zRfH3eU50O4b0runfSUvlXEMtFHsdUJS1jAVW5IhyVJkjlPsz7/yJ4Yimch5EQ1zZoHNki6HXENGC940jHAjlfa+Rw4A2QJ57AtAwBgtKt6g/UWpbIOdIS6IGfCDBseX4Q6m6qRqILDQeSwTCsWs0AIsGavuuVEodLOysx8B850gyvh1sV/l2Thcq0sjQBXTK0pZ2rL0h5YgbIg44VkA5i481fmMGLFjroHS8qhbNI6AgVjvsGPwYonT4UGTUQ7DevHOsarlZv+lwV0uiIc1BURU66WroXfzWpYG7ghGTvELbKqSVFI23bqtVItYzjFCBxB727L279TFmMwk90ELqdt5LVLFuockMkKCIXQpWZDxNonBV3y+lxSFurwJHSr/XnKHdef6H5pZGWXVSOVUmDY2rkQJcwLTflz4ilB03EtkRoqrIoG6JTrYq3Hm7439GHW15spxaUXEm6rTuEipvxopGa80jV63YFfMX+OXYYX6BGTllZqrPkN1M7W1OlFfubPifwFWjxilx4o7jWz17Ey3V0esj0Oj3gkk=', N'Completed');
+INSERT INTO [dbo].[ApprovalLog] ([ApprovalLogID], [InitiatorID], [PossibleVerifierID], [VerifierID], [ActivityName], [ApprovalStatus], [ApprovalDate], [ActivityUrl], [RecordData], [LastComment]) VALUES (2, N'cagada', N'', N'cagada', N'Edit User', N'Approved', N'2020-04-08 21:55:08', N'http://localhost/permissionmanagement.web/UserSetup/EditUser/gsuleman', N'+YmRN00gTbFXcdLuPvc6RlIK/un9ffHwrLqJJRA78+Q5bgUjk19haG8i9v074kbY8/vAEM1CTRmeS+7uCp0qYmLw5zDD0HtDed7rkc6qLqn58C+w1ZsV+G2GMZaHPUmr9+73c5YdLCMn+cvRwlaLEYdVGXXsaUpw5SjtLIu8ukRJ5pIH0w+Mq3b0+9sWaeMRGSx5gKF9+MHoWzclzQqaxtHT5LATKYdGUteAUOzrJlf4WlcCLAIVimxYgZFuKxudhpxCrT0B2D72n+OJly23EJZ/3FMKjJRKIBRJWFDjKxPeNkpVwsrmzUVn30QDJj4Rj6JFwjxpdbIGvniCJB721GVCK24BbI8I+FkVvltaIRbi5uqYzo7y1pe94OoU0XC4+UPkcBWYfevSPhlGW0InVwm09+B5hQMXwi47z/VYVdOk/hdIycLeW9Mxi7gP35IcAqiRzCmzNBTAn9z6VCoGSLU4IdhkGZaXfKxhFxL+aHB6FIFOrhGO6cupE2PyOZSIAMGfnEciQOHyRRTQCvR6BhR5MVR4cIXyU8K4EachuTeghXdzceFcliDFrJvMbNzMihMGXlPJitiRqxFiwp+sHwLe3O5iHRlLR2Yn2FeoMm8KDV/xTH0VGbDoYFdd7N21GooIaOJPgwhXzCqxCAhq4hwUP362F0u1n6w04WAJani4alMSW9bNdqgej46sfiA0XpePko8noAGkDtet8mrPWZO5gtf8aWPfNXLN5GnpnA6avdXrsHHrli7X4TNviUPvtc8ySf/sOXlpC+r9BI3pEvf/somln5wDf7lBJ8Gcl3df31Gr/sJ8FebidUP+wiD2Bb+fdxqK5poIep/cVikmXhyBfSLHeHy3HQjD79W7aQA6i7dFqcow8i12B+R/S1u1/uVNlHzBRwXQmFSa70DmflpsQTFXxnr9MtATZkn0O8rtQnNPo1ZZFQkfhNh/2sbXKfiZIgMAl7/gqyiTBzgzq4R2y6V8xgx+H9gZRb9hFZpkYlMzF2okQfqmZMaChRBZT8BPsOEi6g0+/nykC3fbTis3Tcjc0q4eDGPWz91yGfP9c4eqnVIH2taRAP9NUhtZGw9gd5pYykeDaWvwWiaMOzQSXf0Onijl8RzAyd0pQ+s8PheV++jLbhOEugHAGK1c7ZZtgSN1oRseUbkEk+gJBr2X/G474YOiP53sbzf3J2iEzqymfFREDahGM+IgSjaqIr3GPOVckejjmCsVODOea11s8fk/s69YTYoAlwkfch4=', N'Completed');
+INSERT INTO [dbo].[ApprovalLog] ([ApprovalLogID], [InitiatorID], [PossibleVerifierID], [VerifierID], [ActivityName], [ApprovalStatus], [ApprovalDate], [ActivityUrl], [RecordData], [LastComment]) VALUES (3, N'cagada', N'', N'cagada', N'Edit User', N'Approved', N'2020-04-08 22:08:55', N'http://localhost/permissionmanagement.web/UserSetup/EditUser/gsuleman', N'+YmRN00gTbFXcdLuPvc6RlIK/un9ffHwrLqJJRA78+Q5bgUjk19haG8i9v074kbY8/vAEM1CTRmeS+7uCp0qYmLw5zDD0HtDed7rkc6qLqn58C+w1ZsV+G2GMZaHPUmr9+73c5YdLCMn+cvRwlaLEYdVGXXsaUpw5SjtLIu8ukRJ5pIH0w+Mq3b0+9sWaeMRGSx5gKF9+MHoWzclzQqaxtHT5LATKYdGUteAUOzrJlf4WlcCLAIVimxYgZFuKxudhpxCrT0B2D72n+OJly23EJZ/3FMKjJRKIBRJWFDjKxPeNkpVwsrmzUVn30QDJj4Rj6JFwjxpdbIGvniCJB721GVCK24BbI8I+FkVvltaIRbi5uqYzo7y1pe94OoU0XC4+UPkcBWYfevSPhlGW0InVwm09+B5hQMXwi47z/VYVdOk/hdIycLeW9Mxi7gP35IcAqiRzCmzNBTAn9z6VCoGSLU4IdhkGZaXfKxhFxL+aHB6FIFOrhGO6cupE2PyOZSIAMGfnEciQOHyRRTQCvR6BgkdCEe/jMvKn5RxQANu0mFOVwxwmClmGGLEaxzKyVtlw00pxbpDe1akKFYHp6hQEwbZhNosk8hNS+tG9biW+DXaBBq2p2IuVY5Ou+sAC9Am0kWErnZA7gBm7FvyDOEgfffsmBySByxORNsal9GE5w+0/QqSEzLX5/A0hyVeNuMyUFtrp3x/7HSL3ukuZrG5C2snRencr7g1m3mSpfKUvKiXJCrDS9B7a/GvJ+yUO4sR6w2E3Uujm69FAbd2k3wVs+Bou5O3n1t9mHwUL7bYe+Vbcxx2MD1onFsko4Xjb6tbzXdiZVKJ+e8nLJXwRCrJYJ/m8sk0hT/eahxiUjALbCb8yE1rrwwUdXY0FXejOV7t2N6C0rAjQepHEnKx3EiOu7cJ7igGC9TkiHcFpBe39EeBYjoxLlunfQObt4d3d0LMPnVI5SLTMtvwmnzb8Gz3JNt8ZvXikt/h3ZBweuV/ZQoR0Xp7lxU3mJ20KVecxW0AFWi7PBmDy7FZfgGe7kIaZb+zpeUS4qdspaM/lzc88job/n8SOL4i8N5qAPP8i09TW+JzlO8C08L7FKLHWOKIYVujvJgSGbZPgABhVgkgSgeiNMTPmvHrSlJ9RAuBZ83hbSAI2fC96lWp//bfztf5odJbttkqyk78Ooo0JXnUBmxzWXAknRVMFdEeJO193slV4mgOKCdg2F6B3YiZgEjQp1tqCKOe1Fv0UwnEZVkjUA8=', N'Completed');
+INSERT INTO [dbo].[ApprovalLog] ([ApprovalLogID], [InitiatorID], [PossibleVerifierID], [VerifierID], [ActivityName], [ApprovalStatus], [ApprovalDate], [ActivityUrl], [RecordData], [LastComment]) VALUES (4, N'cagada', N'', N'cagada', N'Edit User', N'Approved', N'2020-04-09 00:33:43', N'http://localhost:9187/UserSetup/EditUser/gsuleman', N'+YmRN00gTbFXcdLuPvc6RlIK/un9ffHwrLqJJRA78+Q5bgUjk19haG8i9v074kbY8/vAEM1CTRmeS+7uCp0qYmLw5zDD0HtDed7rkc6qLqn58C+w1ZsV+G2GMZaHPUmr9+73c5YdLCMn+cvRwlaLEYdVGXXsaUpw5SjtLIu8ukRJ5pIH0w+Mq3b0+9sWaeMRGSx5gKF9+MHoWzclzQqaxtHT5LATKYdGUteAUOzrJlf4WlcCLAIVimxYgZFuKxudhpxCrT0B2D72n+OJly23EJZ/3FMKjJRKIBRJWFDjKxPeNkpVwsrmzUVn30QDJj4Rj6JFwjxpdbIGvniCJB721GVCK24BbI8I+FkVvltaIRbi5uqYzo7y1pe94OoU0XC4+UPkcBWYfevSPhlGW0InVwm09+B5hQMXwi47z/VYVdOk/hdIycLeW9Mxi7gP35IcAqiRzCmzNBTAn9z6VCoGSLU4IdhkGZaXfKxhFxL+aHB6FIFOrhGO6cupE2PyOZSIAMGfnEciQOHyRRTQCvR6BqgJE6g3sm4kzg271CYcRfRCDxhOqEuBWKRTnj5rO/pLy9p44HMgHR+G967PQ1+yZZM/Zc3Tm0QpwSu36H0xnw4tJuf9eS0grh91zwr9pbCBdv5XANyZ2sZ2RZeinxT1LqJoW9/G2yt1eOvDf2gRB8EvI0Wo9FHuAS29s3xD5ne8ajoHy2Q5QYYqX5u5KrCXyZY5d9e0EoAjbV58Id4WRpCrIalvMbPpAJnz7eCOsdFVIOvE6iJ1tb+TBJ1quqj2IHKW1pTvK2gfhfCuvDvpMovv23lum0cKvRsOzsnTizugr/NtxYzrEc8vgjzNl/ur126dsvCkpL/NGZwMY36NCgY6khssl9ZTh7s3pBLcMyasC89A+6wUJFMXOyoXqLLovCtLenEHf7QWvVJahiSC1t1Aijgo0yCpGWwNog+pIysWno+xyqprCKzUWpXhgs2qd9Hb+QY+xF6rnqhchCWzu6qnACm2mL9uOCVoqkvqXjDG+azvnrU+TeS212/38nnWHu2Si7m2uLRuZBFMjSvV8C4G9MAcNljUWaknKW7KZWoC4EaEtTj2LkMOf24WS/3Y6ZDFSIlbTCr5VuWGGn3cKuqygsWkg6OLbgcFXXBix30Ie6ziQe0Fkn47SonW10KyGVp4DaUYS4A6YGTJTJ+2uqtJy/xpZCO5Cw+IXFP00WPuYKqRExvO1cBrfbnsiOTez8CcvttA6gJHXrbOPFRe9oU=', N'Completed');
+SET IDENTITY_INSERT [dbo].[ApprovalLog] OFF
