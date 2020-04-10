@@ -38,6 +38,8 @@ namespace PermissionManagement.Web
         public static HtmlString GetLastLogin(this HtmlHelper htmlHelper)
         {
             var userID = Helper.GetLoggedInUserID();
+            if (string.IsNullOrEmpty(userID) || userID == "anonymous") return new HtmlString(string.Empty);
+
             var cacheService = ((IContainer)HttpContext.Current.Application["container"]).Resolve<ICacheService>();
             string lastLogin = cacheService.Get(string.Format("UserLastLogIn-{0}", userID)) as string;
 

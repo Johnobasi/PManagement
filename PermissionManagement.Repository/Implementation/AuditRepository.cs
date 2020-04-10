@@ -1066,19 +1066,19 @@ namespace PermissionManagement.Repository
             return auditChangeListingResult;
 
         }
-        //private void FinetuneDiff(Difference diff)
-        //{
-        //    if (diff.ParentObject1.Target is RoleModuleAccess)
-        //    {
-        //        string[] splitCurrentProperty = diff.PropertyName.Split('.');
-        //        diff.PropertyName = (diff.ParentObject1.Target as RoleModuleAccess).ModuleName + "." + splitCurrentProperty[splitCurrentProperty.Length - 1];
-        //    }
-        //    else if (diff.ParentObject1.Target is User)
-        //    {
-        //        string[] splitCurrentProperty = diff.PropertyName.Split('.');
-        //        diff.PropertyName = (diff.ParentObject1.Target as User).Username + "." + splitCurrentProperty[splitCurrentProperty.Length - 1];
-        //    }
-        //}
+        private void FinetuneDiff(Difference diff)
+        {
+            if (diff.ParentObject1 is RoleModuleAccess)
+            {
+                string[] splitCurrentProperty = diff.PropertyName.Split('.');
+                diff.PropertyName = (diff.ParentObject1 as RoleModuleAccess).ModuleName + "." + splitCurrentProperty[splitCurrentProperty.Length - 1];
+            }
+            else if (diff.ParentObject1 is User)
+            {
+                string[] splitCurrentProperty = diff.PropertyName.Split('.');
+                diff.PropertyName = (diff.ParentObject1 as User).Username + "." + splitCurrentProperty[splitCurrentProperty.Length - 1];
+            }
+        }
 
         private string GetAffectedRecordID(object affectedObject)
         {
