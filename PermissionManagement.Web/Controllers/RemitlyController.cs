@@ -40,7 +40,6 @@ namespace PermissionManagement.Controllers
                     //passing service service baseurl
                     string url = ConfigurationManager.AppSettings["RemitlyBaseURL"];
                     client.BaseAddress = new Uri(url);
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     var res = await client.GetAsync($"IMTOAPI.Project/Remitly/GetTransfer/{request.RemittanceTrackingCode}");
 
                     //Checking the response
@@ -88,9 +87,18 @@ namespace PermissionManagement.Controllers
         }
 
         [HttpGet]
-        public ActionResult UpdateTransfer()
+        public async Task<ActionResult> UpdateTransferAsync(int Id)
         {
-            return View();
+            UpdateTransferResponse updateTransfer = new UpdateTransferResponse();
+            using (var httpClient = new HttpClient())
+            {
+                using (var response = await httpClient.GetAsync("{RemitlyBaseURL}/IMTOAPI.Project/Remitly/UpdateTransfer" + Id))
+                {
+                    string UpdateResponse = await response.Content.ReadAsStringAsync();
+                    updateTransfer = JsonConvert.DeserializeObject<UpdateTransferResponse>(UpdateResponse);
+                }
+            }
+            return View(updateTransfer);
         }
 
         [HttpPost]
@@ -112,7 +120,6 @@ namespace PermissionManagement.Controllers
                     //passing service service baseurl
                     string url = ConfigurationManager.AppSettings["RemitlyBaseURL"];
                     client.BaseAddress = new Uri(url);
-                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                     HttpResponseMessage res = await client.PostAsync($"IMTOAPI.Project/Remitly/UpdateTransfer/{request.RemittanceTrackingCode}", httpContent);
 
                     //Checking the response

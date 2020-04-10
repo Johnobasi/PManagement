@@ -6,6 +6,7 @@
 <h2>Enter ReferenceTrackingCode to generate transfer</h2>
 @using (Html.BeginForm("GetTransfer", "Remitly"))
  {
+    @Html.ValidationSummary(true, "Please fix this error")
     <div class="form-group">
         @Html.LabelFor(m => m.RemitlyRemittance.Reference_Number)
         @Html.TextBoxFor(m => m.RemitlyRemittance.Reference_Number, new {@class = "form-controll"})

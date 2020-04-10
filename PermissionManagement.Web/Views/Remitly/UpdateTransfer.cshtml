@@ -7,6 +7,7 @@
 <h2>Update Transfer details</h2>
 @using (Html.BeginForm("UpdateTransfer", "Remitly"))
 {
+    @Html.ValidationSummary(true, "Please fix the following errors")
     <div class="form-group">
         @Html.LabelFor(m => m.Reference_Number)
         @Html.TextBoxFor(m => m.Reference_Number, new { @class = "form-controll" })
