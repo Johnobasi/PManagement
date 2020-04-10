@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PermissionManagement.IoC
 {
-       public interface IContainer : IDisposable
+    public interface IContainer : IDisposable
     {
         //Register
         IRegistration Register(string name, Type type, Func<IContainer, object> func);

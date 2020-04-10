@@ -14,6 +14,9 @@ namespace PermissionManagement.Web
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
+
+            routes.MapRoute("GetTransfer", "GetTransfer", new { controller = "Remitly", action = "GetTransfer" });
+            routes.MapRoute("UpdateTransfer", "UpdateTransfer", new { controller = "Remitly", action = "UpdateTransfer" });
             routes.MapRoute("LogIn", "LogIn", new { controller = "Home", action = "LogIn" });
             routes.MapRoute("LogOut", "LogOut", new { controller = "Home", action = "LogOut" });
             routes.MapRoute("ResetPassword", "ResetPassword", new { controller = "Home", action = "ResetPassword" });
