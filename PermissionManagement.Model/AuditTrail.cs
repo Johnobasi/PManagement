@@ -102,9 +102,12 @@ namespace PermissionManagement.Model
         public string ActivityName { get; set; }
         public string ApprovalStatus { get; set; }
         public DateTime? ApprovalDate { get; set; }
+        public DateTime? EntryDate { get; set; }
         public string ActivityUrl { get; set; }
         public string RecordData { get; set; }
         public string LastComment { get; set; }
+        public string RecordIdentification { get; set; }
+        public string CancellationUrl { get; set; }
     }
 
     public class ApprovalNotification

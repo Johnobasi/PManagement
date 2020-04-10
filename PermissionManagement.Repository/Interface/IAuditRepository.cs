@@ -15,7 +15,7 @@ namespace PermissionManagement.Repository
         AuditChangeListingResponse GetAuditChange(PagerItemsII auditChangeparameter);
         string GetAuditChangeRecord(long id);
 
-        T MakerCheckerHandller<T>(T dbVersion, T incomingVersion, string operationType, string moduleName, string modelID, IDbTransaction dbTransaction);
+        T MakerCheckerHandller<T>(T dbVersion, T incomingVersion, string operationType, string moduleName, string modelID, string recordIdentification, IDbTransaction dbTransaction);
         ItemListingResponse GetItemPendingApprovalList(int pageNumber, int pageSize, string sortField, string sortOrder, string searchText, string[] searchFields);
         string GetLastLogin(string username);
 

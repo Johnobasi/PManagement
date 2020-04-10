@@ -530,6 +530,7 @@
     <Content Include="Views\Reports\UsersList.cshtml" />
     <Content Include="Views\Remitly\GetTransfer.cshtml" />
     <Content Include="Views\Remitly\UpdateTransfer.cshtml" />
+    <Content Include="Views\UserSetup\ApproveUser.cshtml" />
     <None Include="Web References\ADService\Reference.map">
       <Generator>MSDiscoCodeGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>

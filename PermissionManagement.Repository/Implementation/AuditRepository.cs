@@ -482,6 +482,350 @@ namespace PermissionManagement.Repository
         //}
 
 
+        public T MakerCheckerHandller<T>(T dbVersion, T incomingVersion, string operationType, string moduleName, string modelID,  string recordIdentification, IDbTransaction dbTransaction)
+        {
+            long logID = 0;
+            Type type = typeof(T);
+
+            var approvalHolder = "ApprovalStatus";
+
+            var list = type.GetProperties().Where(g => (Helper.IsItemExistInList(new string[] { "RowVersionNo2", approvalHolder, "ApprovedBy", "InitiatedBy", "ApprovalLogID", "IsDeleted" }, g.Name))).ToList();
+            if (list.Count < 6)
+            {
+                return incomingVersion;  //default(T);
+            }
+
+            var cancellationID = modelID;
+            var approvalNotice = new ApprovalNotification();
+
+            var dbVersionApprovalStatus = (from m in list where m.Name == approvalHolder select m).FirstOrDefault().GetValue(dbVersion);
+            var dbVersionApprovedBy = (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().GetValue(dbVersion);
+            var dbVersionCreatedBy = (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().GetValue(dbVersion);
+            var dbVersionApprovalLogID = (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().GetValue(dbVersion);
+            var dbVersionIsDeleted = (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().GetValue(dbVersion);
+
+            var incomingVersionApprovalStatus = (from m in list where m.Name == approvalHolder select m).FirstOrDefault().GetValue(incomingVersion);
+            var incomingVersionApprovedBy = (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().GetValue(incomingVersion);
+            var incomingVersionCreatedBy = (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().GetValue(incomingVersion);
+            var incomingRowVersionNo = (from m in list where m.Name == "RowVersionNo2" select m).FirstOrDefault().GetValue(incomingVersion);
+            var incomingIsDeleted = (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().GetValue(incomingVersion);
+
+
+            if (string.IsNullOrEmpty((string)incomingVersionApprovalStatus))
+            {
+                //the page is being edited by a user who cannot see the approval drop down.
+                (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalStatus);
+            }
+
+            IList<UserMailDto> possibleApproverList = new List<UserMailDto>();
+            //if ((string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Pending)                
+
+            if (operationType == Constants.OperationType.Create)
+            {
+                incomingVersionCreatedBy = Helper.GetLoggedInUserID();
+                (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, incomingVersionCreatedBy);
+
+                possibleApproverList = GetPossibleApproverList((string)incomingVersionCreatedBy, moduleName);
+                //this is the simple situation
+                //get possible approving user 
+                if (possibleApproverList.Count > 0)
+                {
+                    var approvalLog = new ApprovalLog()
+                    {
+                        ActivityName = string.Format("{0} {1}", Constants.OperationType.Create, typeof(T).Name),
+                        ApprovalStatus = Constants.ApprovalStatus.Pending,
+                        InitiatorID = (string)incomingVersionCreatedBy,
+                        PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
+                        ActivityUrl = GetUrl(Constants.OperationType.Create, Constants.OperationType.Edit, modelID),
+                        RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(incomingVersion)),
+                        ApprovalDate = null,
+                        RecordIdentification = recordIdentification,
+                        EntryDate = Helper.GetLocalDate(),
+                        CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName))
+                    };
+
+                    logID = context.Insert<ApprovalLog>(approvalLog, transaction: dbTransaction);
+
+                    if (logID > 0)
+                    {
+                        (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
+                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, logID);
+                    }
+
+                    //send approval request notification to possible approvers
+                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRequest;
+                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+                    approvalNotice.NotificationList = possibleApproverList;
+                    approvalNotice.InitiatedBy = GetUserDTO(approvalLog.InitiatorID).FirstOrDefault();
+                    approvalNotice.Comment = string.Empty;
+                }
+                else
+                {
+                    var finalLogID1 = (long)(from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().GetValue(incomingVersion);
+                    if (finalLogID1 == 0)
+                    {
+                        throw new Exception("Approval Log ID cannot be zero - Unable to get a verifier for the initiator");
+                    }
+                    return incomingVersion;
+                }
+
+            }
+            if (operationType == Constants.OperationType.Edit || operationType == Constants.OperationType.Delete)
+            {
+                //case 1: when dbversionapprovalstatus = approved - it should go back to pending
+                // create a new entry in approval log.
+                // take the snapshot of dbversion and save in approvallog,
+                // change initiated by to the id of the staff currently logged in
+                // change approval status to pending
+                // update the approvalogid in the main record table
+                // get list of possible approval and flow right information to them
+                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Approved)
+                {
+                    var CreatedBy = Helper.GetLoggedInUserID();
+                    possibleApproverList = GetPossibleApproverList((string)CreatedBy, moduleName);
+                    //(from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, CreatedBy);
+                    var approvalLog = new ApprovalLog()
+                    {
+                        ActivityName = string.Format("{0} {1}", operationType, typeof(T).Name),
+                        ApprovalStatus = Constants.ApprovalStatus.Pending,
+                        InitiatorID = CreatedBy,
+                        PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
+                        ActivityUrl = GetUrl(Constants.OperationType.Edit, Constants.OperationType.Approve, modelID),
+                        RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(dbVersion)),
+                        ApprovalDate = null,
+                        RecordIdentification = recordIdentification,
+                        EntryDate = Helper.GetLocalDate(),
+                        CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName))
+                    };
+
+                    //also ensure all rejected for correction for this record is set to Rejected and status completed.
+                    var storeApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
+                    if (storeApprovalLog != null) // && storeApprovalLog.ApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection
+                    {
+                        storeApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
+                        //storeApprovalLog.LastComment = "Completed";
+                        context.Execute(@"UPDATE ApprovalLog SET ApprovalStatus = 'Rejected', LastComment = 'Completed'
+                                        WHERE RecordIdentification = @RecordIdentification
+                                        AND ActivityName = @ActivityName
+                                        AND ApprovalStatus <> 'Approved'",
+                            new
+                            {
+                                RecordIdentification = storeApprovalLog.RecordIdentification,
+                                ActivityName = storeApprovalLog.ActivityName
+                            } , transaction: dbTransaction);
+                    }
+
+                    logID = context.Insert<ApprovalLog>(approvalLog, transaction: dbTransaction);
+                    if (logID > 0)
+                    {
+                        (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
+                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, logID);
+                        if (operationType == Constants.OperationType.Delete)
+                        {
+                            (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().SetValue(incomingVersion, true);
+                        }
+                    }
+
+                    //send approval request notification to possible approvers
+                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRequest;
+                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+                    approvalNotice.NotificationList = possibleApproverList;
+                    approvalNotice.InitiatedBy = GetUserDTO(approvalLog.InitiatorID).FirstOrDefault();
+                    approvalNotice.Comment = string.Empty;
+                }
+
+                //case 2: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = approved
+                // change record status to approved.
+                // mark the record in approvalog to complete.
+                // get the initiated by from the main record, and notify.
+                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Approved)
+                {
+                    var approvedBy = Helper.GetLoggedInUserID();
+                    var approvalLog = new ApprovalLog()
+                    {
+                        VerifierID = approvedBy,
+                        LastComment = "Completed",
+                        ApprovalLogID = (long)dbVersionApprovalLogID,
+                        ApprovalDate = Helper.GetLocalDate(),
+                        ApprovalStatus = Constants.ApprovalStatus.Approved,
+                        ActivityUrl = GetUrl(Constants.OperationType.Approve, Constants.OperationType.Complete, modelID),
+                        CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName))
+                    };
+
+                    (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionCreatedBy);
+                    (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, approvedBy);
+                    (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Approved);
+                    (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
+                  
+                    context.Execute(@"UPDATE ApprovalLog SET VerifierID = @VerifierID, ApprovalStatus = @ApprovalStatus, 
+                        ApprovalDate = @ApprovalDate, LastComment = @LastComment,
+                        ActivityUrl = @ActivityUrl, CancellationUrl = @CancellationUrl
+                        WHERE ApprovalLogID = @ApprovalLogID;",
+                        approvalLog, transaction: dbTransaction);
+
+                    //send approval executed notification to the initiator
+                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalExecuted;
+                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+                    approvalNotice.NotificationList = GetUserDTO((string)dbVersionCreatedBy);
+                    approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
+                    approvalNotice.Comment = string.Empty;
+                }
+
+                //case 3: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = rejected
+                // determine if the record is a new record, if it is, delete the record, and notify CreatedBy
+                // if the record has been approved before, get the last approved snapshot from approval log, and repopulate, and notify the CreatedBy
+                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Rejected)
+                {
+                    var approvedBy = Helper.GetLoggedInUserID();
+
+                    var dbApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
+
+                    dbApprovalLog.CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName));
+                    if (string.IsNullOrEmpty((string)dbVersionApprovedBy)) //signify has never been approved before.
+                    {
+                        (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Rejected);
+                        (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().SetValue(incomingVersion, true);
+                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
+
+                        dbApprovalLog.VerifierID = approvedBy;
+                        var approvalComment = Helper.GetLastApprovalComment();
+                        dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
+                        dbApprovalLog.ActivityUrl = GetUrl(Constants.OperationType.Approve, Constants.OperationType.Edit, modelID);
+                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, excludeFieldList: new string[] { "RecordIdentification", "EntryDate" }, transaction: dbTransaction);
+                    }
+                    else
+                    {
+                        var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
+                        incomingVersion = rehydratedVersion;
+
+                        dbApprovalLog.VerifierID = approvedBy;
+                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
+                        dbApprovalLog.ActivityUrl = GetUrl(Constants.OperationType.Approve, Constants.OperationType.Edit, modelID);
+                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, excludeFieldList: new string[] { "RecordIdentification", "EntryDate" }, transaction: dbTransaction);
+                    }
+                    //send approval request rejected notification to the initiator
+                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejected;
+                    approvalNotice.ActionUrl = Helper.GetCurrentURL();
+                    approvalNotice.NotificationList = GetUserDTO((string)dbVersionCreatedBy);
+                    approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
+                    var approvalComment2 = Helper.GetLastApprovalComment();
+                    approvalNotice.Comment = string.IsNullOrEmpty(approvalComment2) ? "Completed" : approvalComment2;
+                }
+
+                //case 4: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = rejectedforcorrection
+                // if this is not a new record, return back to the old snapshot, and status, and notify the user to retry. Mark approvallog as completed
+                // if this is a new record, change approvalstatus to RejectedForCorrection - to be made editable only by the initiated by, notify initiated by to correct.
+                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
+                {
+                    var approvedBy = Helper.GetLoggedInUserID();
+                    var approvalComment = Helper.GetLastApprovalComment();
+                    var dbApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
+                    dbApprovalLog.CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName));
+                    if (string.IsNullOrEmpty((string)dbVersionApprovedBy)) //signify has never been approved before.
+                    {
+                        (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.RejectedForCorrection);
+                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.ApprovalLogID);
+                        (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionCreatedBy);
+                        (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, approvedBy);
+
+                        dbApprovalLog.VerifierID = approvedBy;
+                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.RejectedForCorrection;
+                        dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+                        dbApprovalLog.ActivityUrl = GetUrl(Constants.OperationType.Approve, Constants.OperationType.Edit, modelID);
+
+                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, excludeFieldList: new string[] { "RecordIdentification", "EntryDate" }, transaction: dbTransaction);
+                    }
+                    else
+                    {
+                        var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
+                        incomingVersion = rehydratedVersion;
+
+                        //for rejectedforcorrection we change the approval log in the rehydrated to the recent one.
+                        (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.InitiatorID);
+                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.ApprovalLogID);
+                        (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.RejectedForCorrection);
+
+                        dbApprovalLog.VerifierID = approvedBy;
+                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.RejectedForCorrection;
+                        dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+                        dbApprovalLog.CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName));
+                        dbApprovalLog.ActivityUrl = GetUrl(Constants.OperationType.Approve, Constants.OperationType.Edit, modelID);
+
+                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, excludeFieldList: new string[] { "RecordIdentification", "EntryDate" }, transaction: dbTransaction);
+                    }
+
+                    //send approval rejection for correction notification to the initiator
+                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejectedForCorrection;
+                    approvalNotice.ActionUrl = dbApprovalLog.ActivityUrl;
+                    approvalNotice.NotificationList = GetUserDTO((string)dbVersionCreatedBy);
+                    approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
+                    approvalNotice.Comment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+                }
+
+                //case 5: when dbversionapprovalstatus = rejectedforcorrection
+                // change status to pending, notify possible approvals
+                // change CreatedBy id to the user performing action.
+                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
+                {
+                    var CreatedBy = Helper.GetLoggedInUserID();
+
+                    possibleApproverList = GetPossibleApproverList((string)CreatedBy, moduleName);
+                    var approvalLog = new ApprovalLog()
+                    {
+                        InitiatorID = CreatedBy,
+                        ApprovalLogID = (long)dbVersionApprovalLogID,
+                        ApprovalStatus = Constants.ApprovalStatus.Pending,
+                        PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
+                        ActivityUrl = GetUrl(Constants.OperationType.Edit, Constants.OperationType.Approve, modelID),
+                        LastComment = "Awaiting Correction",
+                        CancellationUrl = string.Format("{0}/admin/CancelRequest/{1}?d={2}", Helper.GetRootURL(), cancellationID, Helper.GetCancellationUrl(moduleName))
+                    };
+                    approvalLog.ActivityUrl = approvalLog.ActivityUrl;
+
+                    (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
+                    (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, CreatedBy);
+                    (from m in list where m.Name == approvalHolder select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
+                    (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovedBy);
+                    context.Execute("UPDATE ApprovalLog SET InitiatorID = @InitiatorID, ApprovalStatus = @ApprovalStatus, PossibleVerifierID = @PossibleVerifierID, ActivityUrl = @ActivityUrl WHERE ApprovalLogID = @ApprovalLogID;",
+                        approvalLog, transaction: dbTransaction);
+
+                    //send approval request notification back to possible approvers after correction
+                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejectedForCorrection;
+                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+                    approvalNotice.NotificationList = possibleApproverList;
+                    approvalNotice.InitiatedBy = GetUserDTO(CreatedBy).FirstOrDefault();
+                    approvalNotice.Comment = string.Empty;
+                }
+            }
+
+            (from m in list where m.Name == "RowVersionNo2" select m).FirstOrDefault().SetValue(incomingVersion, incomingRowVersionNo);
+
+            var finalLogID = (long)(from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().GetValue(incomingVersion);
+            if (finalLogID == 0)
+            {
+                throw new Exception("Approval Log ID cannot be zero");
+            }
+
+            SendNotification(approvalNotice);
+
+            return incomingVersion;
+        }
+
+        private string GetUrl(string currentAction, string nextAction, string modelID)
+        {
+            string url = Helper.GetCurrentURL();
+            if (url.EndsWith(modelID))
+            {
+                return url.Replace(currentAction, nextAction);
+            }
+            return string.Format("{0}/{1}", url.Replace(currentAction, nextAction), modelID);
+        }
+
         //public AuditChangeListingResponse GetAuditChange(int pageNumber, int pageSize, string sortField, string sortOrder, string searchText, string[] searchFields)
         //{
         //    var result = new AuditChangeListingResponse() { PagerResource = new PagerItems() };
@@ -515,297 +859,297 @@ namespace PermissionManagement.Repository
         //    return result;
         //}
 
-        public T MakerCheckerHandller<T>(T dbVersion, T incomingVersion, string operationType, string moduleName, string modelID, IDbTransaction dbTransaction)
-        {
-            long logID = 0;
-            Type type = typeof(T);
-            var list = type.GetProperties().Where(g => (Helper.IsItemExistInList(new string[] { "RowVersionNo2", "ApprovalStatus", "ApprovedBy", "InitiatedBy", "ApprovalLogID", "IsDeleted" }, g.Name))).ToList();
-            if (list.Count < 6)
-            {
-                return incomingVersion;  //default(T);
-            }
+        //public T MakerCheckerHandller<T>(T dbVersion, T incomingVersion, string operationType, string moduleName, string modelID, IDbTransaction dbTransaction)
+        //{
+        //    long logID = 0;
+        //    Type type = typeof(T);
+        //    var list = type.GetProperties().Where(g => (Helper.IsItemExistInList(new string[] { "RowVersionNo2", "ApprovalStatus", "ApprovedBy", "InitiatedBy", "ApprovalLogID", "IsDeleted" }, g.Name))).ToList();
+        //    if (list.Count < 6)
+        //    {
+        //        return incomingVersion;  //default(T);
+        //    }
 
-            var approvalNotice = new ApprovalNotification();
+        //    var approvalNotice = new ApprovalNotification();
 
-            var dbVersionApprovalStatus = (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().GetValue(dbVersion);
-            var dbVersionApprovedBy = (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().GetValue(dbVersion);
-            var dbVersionInitiatedBy = (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().GetValue(dbVersion);
-            var dbVersionApprovalLogID = (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().GetValue(dbVersion);
-            var dbVersionIsDeleted = (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().GetValue(dbVersion);
+        //    var dbVersionApprovalStatus = (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().GetValue(dbVersion);
+        //    var dbVersionApprovedBy = (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().GetValue(dbVersion);
+        //    var dbVersionInitiatedBy = (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().GetValue(dbVersion);
+        //    var dbVersionApprovalLogID = (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().GetValue(dbVersion);
+        //    var dbVersionIsDeleted = (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().GetValue(dbVersion);
 
-            var incomingVersionApprovalStatus = (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().GetValue(incomingVersion);
-            var incomingVersionApprovedBy = (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().GetValue(incomingVersion);
-            var incomingVersionInitiatedBy = (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().GetValue(incomingVersion);
-            var incomingRowVersionNo = (from m in list where m.Name == "RowVersionNo2" select m).FirstOrDefault().GetValue(incomingVersion);
-            var incomingIsDeleted = (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().GetValue(incomingVersion);
+        //    var incomingVersionApprovalStatus = (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().GetValue(incomingVersion);
+        //    var incomingVersionApprovedBy = (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().GetValue(incomingVersion);
+        //    var incomingVersionInitiatedBy = (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().GetValue(incomingVersion);
+        //    var incomingRowVersionNo = (from m in list where m.Name == "RowVersionNo2" select m).FirstOrDefault().GetValue(incomingVersion);
+        //    var incomingIsDeleted = (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().GetValue(incomingVersion);
 
 
-            if (string.IsNullOrEmpty((string)incomingVersionApprovalStatus))
-            {
-                //the page is being edited by a user who cannot see the approval drop down.
-                (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalStatus);
-            }
+        //    if (string.IsNullOrEmpty((string)incomingVersionApprovalStatus))
+        //    {
+        //        //the page is being edited by a user who cannot see the approval drop down.
+        //        (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalStatus);
+        //    }
 
-            IList<UserMailDto> possibleApproverList = new List<UserMailDto>();
-            //if ((string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Pending)                
+        //    IList<UserMailDto> possibleApproverList = new List<UserMailDto>();
+        //    //if ((string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Pending)                
 
-            if (operationType == Constants.OperationType.Create)
-            {
-                incomingVersionInitiatedBy = Helper.GetLoggedInUserID();
-                (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, incomingVersionInitiatedBy);
+        //    if (operationType == Constants.OperationType.Create)
+        //    {
+        //        incomingVersionInitiatedBy = Helper.GetLoggedInUserID();
+        //        (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, incomingVersionInitiatedBy);
 
-                possibleApproverList = GetPossibleApproverList((string)incomingVersionInitiatedBy, moduleName);
-                //this is the simple situation
-                //get possible approving user 
-                if (possibleApproverList.Count > 0)
-                {
-                    var approvalLog = new ApprovalLog()
-                    {
-                        ActivityName = string.Format("{0} {1}", Constants.OperationType.Create, typeof(T).Name),
-                        ApprovalStatus = Constants.ApprovalStatus.Pending,
-                        InitiatorID = (string)incomingVersionInitiatedBy,
-                        PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
-                        ActivityUrl = string.Format("{0}/{1}", Helper.GetCurrentURL().Replace(Constants.OperationType.Create,
-                        Constants.OperationType.Edit), modelID),
-                        RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(incomingVersion)),
-                        ApprovalDate = null
-                    };
-                    logID = context.Insert<ApprovalLog>(approvalLog, transaction: dbTransaction);
+        //        possibleApproverList = GetPossibleApproverList((string)incomingVersionInitiatedBy, moduleName);
+        //        //this is the simple situation
+        //        //get possible approving user 
+        //        if (possibleApproverList.Count > 0)
+        //        {
+        //            var approvalLog = new ApprovalLog()
+        //            {
+        //                ActivityName = string.Format("{0} {1}", Constants.OperationType.Create, typeof(T).Name),
+        //                ApprovalStatus = Constants.ApprovalStatus.Pending,
+        //                InitiatorID = (string)incomingVersionInitiatedBy,
+        //                PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
+        //                ActivityUrl = string.Format("{0}/{1}", Helper.GetCurrentURL().Replace(Constants.OperationType.Create,
+        //                Constants.OperationType.Edit), modelID),
+        //                RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(incomingVersion)),
+        //                ApprovalDate = null
+        //            };
+        //            logID = context.Insert<ApprovalLog>(approvalLog, transaction: dbTransaction);
 
-                    if (logID > 0)
-                    {
-                        (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
-                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, logID);
-                    }
+        //            if (logID > 0)
+        //            {
+        //                (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
+        //                (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, logID);
+        //            }
 
-                    //send approval request notification to possible approvers
-                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRequest;
-                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
-                    approvalNotice.NotificationList = possibleApproverList;
-                    approvalNotice.InitiatedBy = GetUserDTO(approvalLog.InitiatorID).FirstOrDefault();
-                    approvalNotice.Comment = string.Empty;
-                }
-                else
-                {
-                    return incomingVersion;
-                }
+        //            //send approval request notification to possible approvers
+        //            approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRequest;
+        //            approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+        //            approvalNotice.NotificationList = possibleApproverList;
+        //            approvalNotice.InitiatedBy = GetUserDTO(approvalLog.InitiatorID).FirstOrDefault();
+        //            approvalNotice.Comment = string.Empty;
+        //        }
+        //        else
+        //        {
+        //            return incomingVersion;
+        //        }
 
-            }
-            if (operationType == Constants.OperationType.Edit || operationType == Constants.OperationType.Delete)
-            {
-                //case 1: when dbversionapprovalstatus = approved - it should go back to pending
-                // create a new entry in approval log.
-                // take the snapshot of dbversion and save in approvallog,
-                // change initiated by to the id of the staff currently logged in
-                // change approval status to pending
-                // update the approvalogid in the main record table
-                // get list of possible approval and flow right information to them
-                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Approved)
-                {
-                    var initiatedBy = Helper.GetLoggedInUserID();
-                    possibleApproverList = GetPossibleApproverList((string)initiatedBy, moduleName);
-                    (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, initiatedBy);
-                    var approvalLog = new ApprovalLog()
-                    {
-                        ActivityName = string.Format("{0} {1}", operationType, typeof(T).Name),
-                        ApprovalStatus = Constants.ApprovalStatus.Pending,
-                        InitiatorID = initiatedBy,
-                        PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
-                        ActivityUrl = Helper.GetCurrentURL(),
-                        RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(dbVersion)),
-                        ApprovalDate = null
-                    };
+        //    }
+        //    if (operationType == Constants.OperationType.Edit || operationType == Constants.OperationType.Delete)
+        //    {
+        //        //case 1: when dbversionapprovalstatus = approved - it should go back to pending
+        //        // create a new entry in approval log.
+        //        // take the snapshot of dbversion and save in approvallog,
+        //        // change initiated by to the id of the staff currently logged in
+        //        // change approval status to pending
+        //        // update the approvalogid in the main record table
+        //        // get list of possible approval and flow right information to them
+        //        if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Approved)
+        //        {
+        //            var initiatedBy = Helper.GetLoggedInUserID();
+        //            possibleApproverList = GetPossibleApproverList((string)initiatedBy, moduleName);
+        //            (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, initiatedBy);
+        //            var approvalLog = new ApprovalLog()
+        //            {
+        //                ActivityName = string.Format("{0} {1}", operationType, typeof(T).Name),
+        //                ApprovalStatus = Constants.ApprovalStatus.Pending,
+        //                InitiatorID = initiatedBy,
+        //                PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
+        //                ActivityUrl = Helper.GetCurrentURL(),
+        //                RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(dbVersion)),
+        //                ApprovalDate = null
+        //            };
 
-                    //also ensure all rejected for correction for this record is set to Rejected and status completed.
-                    var storeApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
-                    if (storeApprovalLog != null && storeApprovalLog.ApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
-                    {
-                        storeApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
-                        //storeApprovalLog.LastComment = "Completed";
-                        context.Update<ApprovalLog>(storeApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
-                    }
+        //            //also ensure all rejected for correction for this record is set to Rejected and status completed.
+        //            var storeApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
+        //            if (storeApprovalLog != null && storeApprovalLog.ApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
+        //            {
+        //                storeApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
+        //                //storeApprovalLog.LastComment = "Completed";
+        //                context.Update<ApprovalLog>(storeApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
+        //            }
 
-                    logID = context.Insert<ApprovalLog>(approvalLog, transaction: dbTransaction);
-                    if (logID > 0)
-                    {
-                        (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
-                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, logID);
-                        if (operationType == Constants.OperationType.Delete)
-                        {
-                            (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().SetValue(incomingVersion, true);
-                        }
-                    }
+        //            logID = context.Insert<ApprovalLog>(approvalLog, transaction: dbTransaction);
+        //            if (logID > 0)
+        //            {
+        //                (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
+        //                (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, logID);
+        //                if (operationType == Constants.OperationType.Delete)
+        //                {
+        //                    (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().SetValue(incomingVersion, true);
+        //                }
+        //            }
 
-                    //send approval request notification to possible approvers
-                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRequest;
-                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
-                    approvalNotice.NotificationList = possibleApproverList;
-                    approvalNotice.InitiatedBy = GetUserDTO(approvalLog.InitiatorID).FirstOrDefault();
-                    approvalNotice.Comment = string.Empty;
-                }
+        //            //send approval request notification to possible approvers
+        //            approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRequest;
+        //            approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+        //            approvalNotice.NotificationList = possibleApproverList;
+        //            approvalNotice.InitiatedBy = GetUserDTO(approvalLog.InitiatorID).FirstOrDefault();
+        //            approvalNotice.Comment = string.Empty;
+        //        }
 
-                //case 2: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = approved
-                // change record status to approved.
-                // mark the record in approvalog to complete.
-                // get the initiated by from the main record, and notify.
-                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Approved)
-                {
-                    var approvedBy = Helper.GetLoggedInUserID();
-                    var approvalLog = new ApprovalLog()
-                    {
-                        VerifierID = approvedBy,
-                        LastComment = "Completed",
-                        ApprovalLogID = (long)dbVersionApprovalLogID,
-                        ApprovalDate = Helper.GetLocalDate(),
-                        ApprovalStatus = Constants.ApprovalStatus.Approved,
-                        ActivityUrl = Helper.GetCurrentURL()
-                    };
+        //        //case 2: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = approved
+        //        // change record status to approved.
+        //        // mark the record in approvalog to complete.
+        //        // get the initiated by from the main record, and notify.
+        //        if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Approved)
+        //        {
+        //            var approvedBy = Helper.GetLoggedInUserID();
+        //            var approvalLog = new ApprovalLog()
+        //            {
+        //                VerifierID = approvedBy,
+        //                LastComment = "Completed",
+        //                ApprovalLogID = (long)dbVersionApprovalLogID,
+        //                ApprovalDate = Helper.GetLocalDate(),
+        //                ApprovalStatus = Constants.ApprovalStatus.Approved,
+        //                ActivityUrl = Helper.GetCurrentURL()
+        //            };
 
-                    (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionInitiatedBy);
-                    (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, approvedBy);
-                    (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Approved);
-                    (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
+        //            (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionInitiatedBy);
+        //            (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, approvedBy);
+        //            (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Approved);
+        //            (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
 
-                    context.Execute("UPDATE ApprovalLog SET VerifierID = @VerifierID, ApprovalStatus = @ApprovalStatus, ApprovalDate = @ApprovalDate, LastComment = @LastComment WHERE ApprovalLogID = @ApprovalLogID;",
-                        approvalLog, transaction: dbTransaction);
+        //            context.Execute("UPDATE ApprovalLog SET VerifierID = @VerifierID, ApprovalStatus = @ApprovalStatus, ApprovalDate = @ApprovalDate, LastComment = @LastComment WHERE ApprovalLogID = @ApprovalLogID;",
+        //                approvalLog, transaction: dbTransaction);
 
-                    //send approval executed notification to the initiator
-                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalExecuted;
-                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
-                    approvalNotice.NotificationList = GetUserDTO((string)dbVersionInitiatedBy);
-                    approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
-                    approvalNotice.Comment = string.Empty;
-                }
+        //            //send approval executed notification to the initiator
+        //            approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalExecuted;
+        //            approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+        //            approvalNotice.NotificationList = GetUserDTO((string)dbVersionInitiatedBy);
+        //            approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
+        //            approvalNotice.Comment = string.Empty;
+        //        }
 
-                //case 3: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = rejected
-                // determine if the record is a new record, if it is, delete the record, and notify initiatedby
-                // if the record has been approved before, get the last approved snapshot from approval log, and repopulate, and notify the initiatedby
-                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Rejected)
-                {
-                    var approvedBy = Helper.GetLoggedInUserID();
+        //        //case 3: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = rejected
+        //        // determine if the record is a new record, if it is, delete the record, and notify initiatedby
+        //        // if the record has been approved before, get the last approved snapshot from approval log, and repopulate, and notify the initiatedby
+        //        if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.Rejected)
+        //        {
+        //            var approvedBy = Helper.GetLoggedInUserID();
 
-                    var dbApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
-                    if (string.IsNullOrEmpty((string)dbVersionApprovedBy)) //signify has never been approved before.
-                    {
-                        (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Rejected);
-                        (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().SetValue(incomingVersion, true);
-                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
+        //            var dbApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
+        //            if (string.IsNullOrEmpty((string)dbVersionApprovedBy)) //signify has never been approved before.
+        //            {
+        //                (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Rejected);
+        //                (from m in list where m.Name == "IsDeleted" select m).FirstOrDefault().SetValue(incomingVersion, true);
+        //                (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
 
-                        dbApprovalLog.VerifierID = approvedBy;
-                        var approvalComment = Helper.GetLastApprovalComment();
-                        dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
-                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
-                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
-                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
-                    }
-                    else
-                    {
-                        var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
-                        incomingVersion = rehydratedVersion;
+        //                dbApprovalLog.VerifierID = approvedBy;
+        //                var approvalComment = Helper.GetLastApprovalComment();
+        //                dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+        //                dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+        //                dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
+        //                context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
+        //            }
+        //            else
+        //            {
+        //                var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
+        //                incomingVersion = rehydratedVersion;
 
-                        dbApprovalLog.VerifierID = approvedBy;
-                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
-                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
-                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
-                    }
-                    //send approval request rejected notification to the initiator
-                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejected;
-                    approvalNotice.ActionUrl = Helper.GetCurrentURL();
-                    approvalNotice.NotificationList = GetUserDTO((string)dbVersionInitiatedBy);
-                    approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
-                    var approvalComment2 = Helper.GetLastApprovalComment();
-                    approvalNotice.Comment = string.IsNullOrEmpty(approvalComment2) ? "Completed" : approvalComment2;
-                }
+        //                dbApprovalLog.VerifierID = approvedBy;
+        //                dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+        //                dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.Rejected;
+        //                context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
+        //            }
+        //            //send approval request rejected notification to the initiator
+        //            approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejected;
+        //            approvalNotice.ActionUrl = Helper.GetCurrentURL();
+        //            approvalNotice.NotificationList = GetUserDTO((string)dbVersionInitiatedBy);
+        //            approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
+        //            var approvalComment2 = Helper.GetLastApprovalComment();
+        //            approvalNotice.Comment = string.IsNullOrEmpty(approvalComment2) ? "Completed" : approvalComment2;
+        //        }
 
-                //case 4: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = rejectedforcorrection
-                // if this is not a new record, return back to the old snapshot, and status, and notify the user to retry. Mark approvallog as completed
-                // if this is a new record, change approvalstatus to RejectedForCorrection - to be made editable only by the initiated by, notify initiated by to correct.
-                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
-                {
-                    var approvedBy = Helper.GetLoggedInUserID();
-                    var approvalComment = Helper.GetLastApprovalComment();
-                    //if (string.IsNullOrEmpty(approvalComment))
-                    //{
-                    //    approvalComment = "No Comment - Awaiting Correction";
-                    //}
-                    var dbApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
-                    if (string.IsNullOrEmpty((string)dbVersionApprovedBy)) //signify has never been approved before.
-                    {
-                        (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.RejectedForCorrection);
-                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.ApprovalLogID);
-                        (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionInitiatedBy);
-                        (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, approvedBy);
+        //        //case 4: when dbversionapprovalstatus = pending and incomingversionapprovalstatus = rejectedforcorrection
+        //        // if this is not a new record, return back to the old snapshot, and status, and notify the user to retry. Mark approvallog as completed
+        //        // if this is a new record, change approvalstatus to RejectedForCorrection - to be made editable only by the initiated by, notify initiated by to correct.
+        //        if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.Pending && (string)incomingVersionApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
+        //        {
+        //            var approvedBy = Helper.GetLoggedInUserID();
+        //            var approvalComment = Helper.GetLastApprovalComment();
+        //            //if (string.IsNullOrEmpty(approvalComment))
+        //            //{
+        //            //    approvalComment = "No Comment - Awaiting Correction";
+        //            //}
+        //            var dbApprovalLog = context.GetById<ApprovalLog>((long)dbVersionApprovalLogID, transaction: dbTransaction);
+        //            if (string.IsNullOrEmpty((string)dbVersionApprovedBy)) //signify has never been approved before.
+        //            {
+        //                (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.RejectedForCorrection);
+        //                (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.ApprovalLogID);
+        //                (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionInitiatedBy);
+        //                (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, approvedBy);
 
-                        dbApprovalLog.VerifierID = approvedBy;
-                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
-                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.RejectedForCorrection;
-                        dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
-                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
-                    }
-                    else
-                    {
-                        var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
-                        incomingVersion = rehydratedVersion;
+        //                dbApprovalLog.VerifierID = approvedBy;
+        //                dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+        //                dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.RejectedForCorrection;
+        //                dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+        //                context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
+        //            }
+        //            else
+        //            {
+        //                var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
+        //                incomingVersion = rehydratedVersion;
 
-                        //for rejectedforcorrection we change the approval log in the rehydrated to the recent one.
-                        (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.ApprovalLogID);
+        //                //for rejectedforcorrection we change the approval log in the rehydrated to the recent one.
+        //                (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.ApprovalLogID);
 
-                        dbApprovalLog.VerifierID = approvedBy;
-                        dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
-                        dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.RejectedForCorrection;
-                        dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
-                        context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
-                    }
+        //                dbApprovalLog.VerifierID = approvedBy;
+        //                dbApprovalLog.ApprovalDate = Helper.GetLocalDate();
+        //                dbApprovalLog.ApprovalStatus = Constants.ApprovalStatus.RejectedForCorrection;
+        //                dbApprovalLog.LastComment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+        //                context.Update<ApprovalLog>(dbApprovalLog, primaryKeyList: new string[] { "ApprovalLogID" }, transaction: dbTransaction);
+        //            }
 
-                    //send approval rejection for correction notification to the initiator
-                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejectedForCorrection;
-                    approvalNotice.ActionUrl = Helper.GetCurrentURL();
-                    approvalNotice.NotificationList = GetUserDTO((string)dbVersionInitiatedBy);
-                    approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
-                    approvalNotice.Comment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
-                }
+        //            //send approval rejection for correction notification to the initiator
+        //            approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejectedForCorrection;
+        //            approvalNotice.ActionUrl = Helper.GetCurrentURL();
+        //            approvalNotice.NotificationList = GetUserDTO((string)dbVersionInitiatedBy);
+        //            approvalNotice.ApprovedBy = GetUserDTO(approvedBy).FirstOrDefault();
+        //            approvalNotice.Comment = string.IsNullOrEmpty(approvalComment) ? "Completed" : approvalComment;
+        //        }
 
-                //case 5: when dbversionapprovalstatus = rejectedforcorrection
-                // change status to pending, notify possible approvals
-                // change initiatedby id to the user performing action.
-                if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
-                {
-                    var initiatedBy = Helper.GetLoggedInUserID();
+        //        //case 5: when dbversionapprovalstatus = rejectedforcorrection
+        //        // change status to pending, notify possible approvals
+        //        // change initiatedby id to the user performing action.
+        //        if ((string)dbVersionApprovalStatus == Constants.ApprovalStatus.RejectedForCorrection)
+        //        {
+        //            var initiatedBy = Helper.GetLoggedInUserID();
 
-                    possibleApproverList = GetPossibleApproverList((string)initiatedBy, moduleName);
-                    var approvalLog = new ApprovalLog()
-                    {
-                        InitiatorID = initiatedBy,
-                        ApprovalLogID = (long)dbVersionApprovalLogID,
-                        ApprovalStatus = Constants.ApprovalStatus.Pending,
-                        PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
-                        ActivityUrl = Helper.GetCurrentURL(),
-                        LastComment = "Awaiting Correction"
+        //            possibleApproverList = GetPossibleApproverList((string)initiatedBy, moduleName);
+        //            var approvalLog = new ApprovalLog()
+        //            {
+        //                InitiatorID = initiatedBy,
+        //                ApprovalLogID = (long)dbVersionApprovalLogID,
+        //                ApprovalStatus = Constants.ApprovalStatus.Pending,
+        //                PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
+        //                ActivityUrl = Helper.GetCurrentURL(),
+        //                LastComment = "Awaiting Correction"
 
-                    };
+        //            };
 
-                    (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
-                    (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, initiatedBy);
-                    (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
-                    (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovedBy);
-                    context.Execute("UPDATE ApprovalLog SET InitiatorID = @InitiatorID, ApprovalStatus = @ApprovalStatus, PossibleVerifierID = @PossibleVerifierID WHERE ApprovalLogID = @ApprovalLogID;",
-                        approvalLog, transaction: dbTransaction);
+        //            (from m in list where m.Name == "ApprovalLogID" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovalLogID);
+        //            (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, initiatedBy);
+        //            (from m in list where m.Name == "ApprovalStatus" select m).FirstOrDefault().SetValue(incomingVersion, Constants.ApprovalStatus.Pending);
+        //            (from m in list where m.Name == "ApprovedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbVersionApprovedBy);
+        //            context.Execute("UPDATE ApprovalLog SET InitiatorID = @InitiatorID, ApprovalStatus = @ApprovalStatus, PossibleVerifierID = @PossibleVerifierID WHERE ApprovalLogID = @ApprovalLogID;",
+        //                approvalLog, transaction: dbTransaction);
 
-                    //send approval request notification back to possible approvers after correction
-                    approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejectedForCorrection;
-                    approvalNotice.ActionUrl = approvalLog.ActivityUrl;
-                    approvalNotice.NotificationList = possibleApproverList;
-                    approvalNotice.InitiatedBy = GetUserDTO(initiatedBy).FirstOrDefault();
-                    approvalNotice.Comment = string.Empty;
-                }
-            }
+        //            //send approval request notification back to possible approvers after correction
+        //            approvalNotice.NoticeType = Constants.ApprovalNoticeType.ApprovalRejectedForCorrection;
+        //            approvalNotice.ActionUrl = approvalLog.ActivityUrl;
+        //            approvalNotice.NotificationList = possibleApproverList;
+        //            approvalNotice.InitiatedBy = GetUserDTO(initiatedBy).FirstOrDefault();
+        //            approvalNotice.Comment = string.Empty;
+        //        }
+        //    }
 
-            (from m in list where m.Name == "RowVersionNo2" select m).FirstOrDefault().SetValue(incomingVersion, incomingRowVersionNo);
+        //    (from m in list where m.Name == "RowVersionNo2" select m).FirstOrDefault().SetValue(incomingVersion, incomingRowVersionNo);
 
-            SendNotification(approvalNotice);
+        //    SendNotification(approvalNotice);
 
-            return incomingVersion;
-        }
+        //    return incomingVersion;
+        //}
 
         private IList<UserMailDto> GetUserDTO(string userName)
         {
@@ -820,12 +1164,20 @@ namespace PermissionManagement.Repository
             var tr = dapperContext.GetTransaction();
             if (!string.IsNullOrEmpty(userInContext.BranchID))
             {
-                var verifierNameSql = "Select u.Username, Email AS EmailAddress, FirstName + ' ' + LastName AS DisplayName From [User] u inner join usersinroles a on u.Username = a.Username inner join rolemoduleaccess m on a.RoleId=m.RoleId and m.VerifyAccess = '1' and u.BranchID = @BranchID and u.Username <> @Username and u.IsDeleted = 0 and m.ModuleId = (SELECT ModuleID FROM Module WHERE ModuleName = @ModuleName);";
+                var verifierNameSql = @"Select u.Username, Email AS EmailAddress, FirstName + ' ' + LastName AS DisplayName From 
+                                    [User] u inner join usersinroles a on u.Username = a.Username inner join rolemoduleaccess m 
+                                    on a.RoleId=m.RoleId and m.VerifyAccess = '1' and u.BranchID = @BranchID and u.Username <> 
+                                    @Username and u.IsDeleted = 0 and m.ModuleId = (SELECT ModuleID FROM Module 
+                                    WHERE ModuleName = @ModuleName);";
                 return context.Query<UserMailDto>(verifierNameSql, new { Username = userInContext.Username, BranchID = userInContext.BranchID, ModuleName = moduleName, IsDeleted = 0 }, transaction: tr).ToList();
             }
             else
             {
-                var MakeOrCheck = "Select u.Username, Email AS EmailAddress, FirstName + ' ' + LastName AS DisplayName From [User] u inner join usersinroles a on u.Username = a.Username inner join rolemoduleaccess m on a.RoleId=m.RoleId and m.MakeOrCheckAccess = '1' and (u.BranchID is NULL OR u.BranchID = '') and u.Username <> @Username and u.IsDeleted = 0 and m.ModuleId = (SELECT ModuleID FROM Module WHERE ModuleName = @ModuleName);";
+                var MakeOrCheck = @"Select u.Username, Email AS EmailAddress, FirstName + ' ' + LastName AS DisplayName From 
+                                  [User] u inner join usersinroles a on u.Username = a.Username inner join rolemoduleaccess m 
+                                  on a.RoleId=m.RoleId and m.MakeOrCheckAccess = '1' and (u.BranchID is NULL OR u.BranchID = '')
+                                  and u.Username <> @Username and u.IsDeleted = 0 and m.ModuleId = (SELECT ModuleID FROM Module 
+                                  WHERE ModuleName = @ModuleName);";
                 return context.Query<UserMailDto>(MakeOrCheck, new { Username = userInContext.Username, ModuleName = moduleName, IsDeleted = 0 }, transaction: tr).ToList();
             }
         }
@@ -990,7 +1342,7 @@ namespace PermissionManagement.Repository
             //sql.AppendLine("WHERE (ApprovalStatus <> 'Approved' OR LastComment IS NULL) AND (LastComment <> 'Completed' OR LastComment IS NULL) AND  PossibleVerifierID  LIKE @UserIDFilter");
             //sql.AppendLine("WHERE (ApprovalStatus <> 'Approved' OR LastComment IS NULL) AND (LastComment <> 'Completed' OR LastComment IS NULL) ");
             sql.AppendLine(" ) AS A CROSS APPLY String.nodes ('/M') AS Split(a)) ");
-            sql.AppendLine("AND [ApprovalLog].ApprovalStatus = 'Pending' AND InitiatorID <> @UserID) AS TBL1 ) AS TBL ");
+            sql.AppendLine("AND [ApprovalLog].ApprovalStatus = 'Pending' AND InitiatorID <> @UserID AND PossibleVerifierID  LIKE @UserIDFilter) AS TBL1 ) AS TBL ");
             sql.AppendLine("WHERE NUMBER BETWEEN @StartPage AND @EndPage ");
             sql.AppendFormat("ORDER BY {0} ", orderByField);
 

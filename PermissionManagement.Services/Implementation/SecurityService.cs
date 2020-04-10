@@ -130,6 +130,11 @@ namespace PermissionManagement.Services
             return repositoryInstance.EditUser(userToEdit);
         }
 
+        public bool CancelUserSetupRequest(string id)
+        {
+            return repositoryInstance.CancelUserSetupRequest(id);
+        }
+
         public User GetUser(string username)
         {
             User user = repositoryInstance.GetUser(username);

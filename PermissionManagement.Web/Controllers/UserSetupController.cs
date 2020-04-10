@@ -251,18 +251,99 @@ namespace PermissionManagement.Web
         }
 
         [AuditFilter()]
-        [SecurityAccess(Constants.Modules.UserSetup, new string[] { Constants.AccessRights.Edit, Constants.AccessRights.Verify })]
+        [SecurityAccess(Constants.Modules.UserSetup, new string[] { Constants.AccessRights.Edit })]
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult EditUser(User model)
         {
             ValidationStateDictionary states = new ValidationStateDictionary();
             model.UserRole = new Role() { RoleId = model.RoleId, RoleName = (from r in _securityService.GetRoleList() where r.RoleId == model.RoleId select r.RoleName).FirstOrDefault() };
-            var dbApprovalStatus = Helper.GetLastApprovalStatus(ControllerContext.RequestContext.HttpContext.Request);
+            model.InitiatedBy = ControllerContext.RequestContext.HttpContext.User.Identity.Name;
+            var updated = _securityService.EditUser(model, ref states);
+            if (!states.IsValid)
+            {
+                model.UserRole = new Role() { RoleId = model.RoleId };
+                ModelState.AddModelErrors(states);
+                var errorList = ValidationHelper.BuildModelErrorList(states);
+                SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
+                return View(model);
+            }
+            else
+            {
+                if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
+                else { Success(Constants.Messages.SaveSuccessful, true); }
+                return RedirectToAction("EditUser", new { id = model.Username });
+            }                 
+        }
+
+        [AuditFilter(AuditLogLevel.LevelThree)]
+        [SecurityAccess(Constants.Modules.UserSetup, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        public ActionResult ApproveUser(string id)
+        {
+            var userToEdit = _securityService.GetUser(id);
+
+            if (userToEdit != null && userToEdit.ApprovalStatus == Constants.ApprovalStatus.Pending)
+            {
+                userToEdit.RoleId = userToEdit.UserRole.RoleId;             
+                return View(userToEdit);
+            }
+            else
+            {
+                if (userToEdit != null && userToEdit.ApprovalStatus != Constants.ApprovalStatus.Pending)
+                {
+                    Warning(string.Format("Record {0} not in pending approval state", id), true);
+                }
+                else
+                {
+                    Warning(string.Format("User with id {0} not found in the system", id), true);
+                }
+                return RedirectToAction("ListUser");
+            }
+        }
+
+        [AuditFilter()]
+        [SecurityAccess(Constants.Modules.UserSetup, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [MultipleButton(Name = "action", Argument = "RejectForCorrectionUser")]
+        public ActionResult RejectForCorrectionUser(User model)
+        {
+            return ExecuteAction(model, Constants.ApprovalStatus.RejectedForCorrection);
+        }
+
+        [AuditFilter()]
+        [SecurityAccess(Constants.Modules.UserSetup, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [MultipleButton(Name = "action", Argument = "RejectUser")]
+        public ActionResult Reject(User model)
+        {
+            return ExecuteAction(model, Constants.ApprovalStatus.Rejected);
+        }
+
+        [AuditFilter()]
+        [SecurityAccess(Constants.Modules.UserSetup, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [MultipleButton(Name = "action", Argument = "ApproveUser")]
+        public ActionResult ApproveUser(User model)
+        {
+            return ExecuteAction(model, Constants.ApprovalStatus.Approved); 
+        }
+
+        private ActionResult ExecuteAction(User model, string approvalStatus)
+        {
+            ValidationStateDictionary states = new ValidationStateDictionary();
+
+            model = _securityService.GetUser(model.Username);
+            var dbApprovalStatus = Constants.ApprovalStatus.Pending;
+
             //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
             var permitEdit = Access.CanEdit(Constants.Modules.UserSetup, model.InitiatedBy, dbApprovalStatus, model.IsDeleted);
             if (permitEdit)
             {
+                model.ApprovalStatus = approvalStatus;
+
                 var updated = _securityService.EditUser(model, ref states);
                 if (!states.IsValid)
                 {
@@ -276,15 +357,16 @@ namespace PermissionManagement.Web
                 {
                     if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
                     else { Success(Constants.Messages.SaveSuccessful, true); }
-                    return RedirectToAction("EditUser", new { id = model.Username });
+                    return RedirectToAction("ListUser");
                 }
             }
             else
             {
                 Warning(Constants.Messages.EditNotPermittedError, true);
-                return RedirectToAction("EditUser", new { id = model.Username });
+                return RedirectToAction("ListUser");
             }
         }
+
         #endregion
 
         #region Other Action Results
