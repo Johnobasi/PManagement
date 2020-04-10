@@ -1,0 +1,62 @@
+﻿@model Remitly.ProcessingManager.RemitlyCommon.RemitlyRemittanceResponse
+@{
+    ViewBag.Title = "GetTransfer";
+}
+
+<h2>Enter ReferenceTrackingCode to generate transfer</h2>
+@using (Html.BeginForm("GetTransfer", "Remitly"))
+ {
+    <div class="form-group">
+        @Html.LabelFor(m => m.RemitlyRemittance.Reference_Number)
+        @Html.TextBoxFor(m => m.RemitlyRemittance.Reference_Number, new {@class = "form-controll"})
+        @Html.ValidationMessageFor(m => m.RemitlyRemittance.Reference_Number)
+    </div>
+
+    <div class="text-center panel-body">
+        <button type="submit" class="btn btn-sm btn-primary"> Get Transfer</button>
+    </div>
+ }
+
+@if (Model !=null)
+{
+    <h2> Detail Transfer</h2>
+    <table class="table table-sm table-striped" table-bordered m-2>
+        <thead>
+            <tr>
+                <th>Reference Number</th>
+                <th>Created On</th>
+                <th>State</th>
+                <th>Type</th>
+                <th>Payer Code</th>
+                <th>Send Amount</th>
+                <th>Receive Amount</th>
+                <th>Bank Account</th>
+                <th>Sender</th>
+                <th>Reciever</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Identification</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.RemitlyRemittance.Reference_Number</td>
+                <td>@Model.RemitlyRemittance.Created_On</td>
+                <td>@Model.RemitlyRemittance.State</td>
+                <td>@Model.RemitlyRemittance.Type</td>
+                <td>@Model.RemitlyRemittance.Payer_Codes</td>
+                <td>@Model.RemitlyRemittance.Send_Amount</td>
+                <td>@Model.RemitlyRemittance.Receive_Amount</td>
+                <td>@Model.RemitlyRemittance.Bank_Account</td>
+                <td>@Model.RemitlyRemittance.Sender</td>
+                <td>@Model.RemitlyRemittance.Receiver</td>
+                <td>@Model.RemitlyRemittance.Name</td>
+                <td>@Model.RemitlyRemittance.Address</td>
+                <td>@Model.RemitlyRemittance.Identification</td>
+
+            </tr>
+        </tbody>
+    </table>
+
+ }
+

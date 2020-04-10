@@ -1,0 +1,65 @@
+﻿@model Remitly.ProcessingManager.RemitlyCommon.UpdateTransferResponse
+@{
+    ViewBag.Title = "UpdateTransfer";
+}
+
+
+<h2>Update Transfer details</h2>
+@using (Html.BeginForm("UpdateTransfer", "Remitly"))
+{
+    <div class="form-group">
+        @Html.LabelFor(m => m.Reference_Number)
+        @Html.TextBoxFor(m => m.Reference_Number, new { @class = "form-controll" })
+        @Html.ValidationMessageFor(m =>m.Reference_Number)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Created_On)
+        @Html.TextBoxFor(m => m.Created_On, new { @class = "form-controll" })
+        @Html.ValidationMessageFor( m=>m.Created_On)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Payer_Codes)
+        @Html.TextBoxFor(m => m.Payer_Codes, new { @class = "form-controll" })
+        @Html.ValidationMessageFor(m=>m.Payer_Codes)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.Type)
+        @Html.TextBoxFor(m => m.Type, new { @class = "form-controll" })
+        @Html.ValidationMessageFor(m => m.Type)
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(m => m.State)
+        @Html.TextBoxFor(m => m.State, new { @class = "form-controll" })
+        @Html.ValidationMessageFor( m =>m.State)
+    </div>
+    <div class="text-center panel-body">
+        <button type="submit" class="btn btn-sm btn-primary"> Update Transfer</button>
+    </div>
+}
+
+@if (ViewBag.Result == "Success")
+{
+    <h2>Update transfer</h2>
+    <table class="tabel table-sm table-striped table-bordered m-2">
+        <thead>
+            <tr>
+                <th>Reference Number</th>
+                <th>Created On</th>
+                <th>Payer Code</th>
+                <th>Type</th>
+                <th>State </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.Reference_Number</td>
+                <td>@Model.Created_On</td>
+                <td>@Model.Payer_Codes</td>
+                <td>@Model.Type</td>
+                <td>@Model.State</td>
+            </tr>
+        </tbody>
+
+    </table>
+   
+}
