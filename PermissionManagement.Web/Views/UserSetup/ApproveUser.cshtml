@@ -149,75 +149,88 @@
         </div>
         @using (Html.BeginForm("ApproveUser", "UserSetup", FormMethod.Post, new { id = "approveUserForm" }))
         {
-            @Html.AntiForgeryToken()
-            <div id="approveUserDetailDiv">
-               <div class="col-md-12 col-xs-12">
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <input type="submit" value="Approve" name="action:ApproveUser" class="form-control btn-primary" />
-                        </div>
-                        <div class="col-md-4">
-                            <input type="submit" value="Reject" name="action:RejectUser" class="form-control btn-primary" />
-                        </div>
-                        <div class="col-md-4">
-                            <input type="submit" onclick="GetComment(this); return false;" value="Reject for Correction" class="form-control btn-primary" />
-                        </div>
-                    </div>
-              </div>
-              <div class="row">
-                    <div class="col-md-12 col-sm-8 col-xs-12 col-xs-offset-0">
-                        <div id="dialog4" tabindex="-1" role="dialog" aria-labelledby="dialog4Label" aria-hidden="true" class="modal fade">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                                        <h4 class="modal-title" id="dialog4Label">Enter Comment</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Please enter your comment for the approval or rejection.</p>
-                                        <div class="row">
-                                            <div class="col-md-10 col-sm-6 col-xs-12">
-                                                <div class="form-group">
-                                                    <label class="control-label col-md-2" for="ApproverComment">Approver Comment</label>
-                                                    <div class="col-md-10">
-                                                        <input class="form-control input-sm text-box single-line" id="ApproverComment" name="ApproverComment" type="text" value="" />
-                                                        <span class="field-validation-valid text-danger" data-valmsg-for="ApproverComment" data-valmsg-replace="true"></span>
-                                                    </div>
-                                                </div>
+        <div id="approveUserDetailDiv">
+        @Html.AntiForgeryToken()
+        <div class="col-md-12 col-xs-12">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <input type="submit" value="Approve" name="action:ApproveUser" class="form-control btn-primary" />
+                </div>
+                <div class="col-md-4">
+                    <input type="submit" value="Reject" name="action:RejectUser" class="form-control btn-primary" />
+                </div>
+                <div class="col-md-4">
+                    <input type="submit" value="Reject for Correction" onclick="GetComment(this); return false;" class="form-control btn-primary"/>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12 col-sm-8 col-xs-12 col-xs-offset-0">
+                <div id="dialog4" tabindex="-1" role="dialog" aria-labelledby="dialog4Label" aria-hidden="true" class="modal fade">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h4 class="modal-title" id="dialog4Label">Enter Comment</h4>
+                            </div>
+                            <div class="modal-body">
+                                <p>Please enter your comment for the approval or rejection.</p>
+                                <div class="row">
+                                    <div class="col-md-10 col-sm-6 col-xs-12">
+                                        <div class="form-group">
+                                            <label class="control-label col-md-2" for="ApproverComment">Approver Comment</label>
+                                            <div class="col-md-10">
+                                                <input class="form-control input-sm text-box single-line" id="ApproverComment" name="ApproverComment" type="text" value="" />
+                                                <span class="field-validation-valid text-danger" data-valmsg-for="ApproverComment" data-valmsg-replace="true"></span>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="modal-footer">
-                                        <input type="submit" value="Close" class="btn btn-primary" data-dismiss="modal" />
-                                        <input type="submit" name="action:RejectForCorrectionUser" value="Submit" onclick="SubmitChange(this);" class="btn btn-primary" data-dismiss="modal" />
-                                    </div>
                                 </div>
+                            </div>
+                            <div class="modal-footer">
+                                <input type="submit" value="Close" class="btn btn-primary" data-dismiss="modal" />
+                                <input type="submit" value="Submit" onclick="SubmitChange(this);" class="btn btn-primary" data-dismiss="modal"/>
                             </div>
                         </div>
                     </div>
                 </div>
-              @Html.Hidden("Username", Model.Username)
+            </div>
+        </div>
+        @Html.Hidden("Username", Model.Username)
     </div>
-    }
+     }
     </div>
 }
 @section scripts {
     <script type="text/javascript">
 
-        function GetComment(btn) { $('#dialog4').modal('show');}
+        function GetComment(btn) {
+
+            $('#dialog4').modal('show');
+        }
+
         @*$("#rejectChange").click(function () { $('#dialog4').modal('show');});*@
 
         function SubmitChange(btn) {
+
+            
+            $obj = $("#action:RejectForCorrectionUser");
+            if (!jQuery.contains(document, $obj[0])) {
+                $('#approveUserForm').append($('<input id="action:RejectForCorrectionUser" name="action:RejectForCorrectionUser" type="hidden" value="Reject for Correction"/>'));
+            }
+
             var rootUrl = "@Helper.GetRootURL()";
 		    var id = "@ViewBag.ModelId";
             var postUrl = rootUrl + "/UserSetup/ApproveUser/" + id; 
-            alert("here");
+            var redirectUrl = rootUrl + "/UserSetup/ListUser";
             $.ajax({
                 type: "POST",
                 url: postUrl,
                 data: $('#approveUserForm').serialize(),
                 datatype: "html",
                 success: function (data) { 
+                    window.location.href = redirectUrl;
+                    return;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     if (jqXHR.status === 401) {

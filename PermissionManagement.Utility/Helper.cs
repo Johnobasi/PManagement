@@ -627,7 +627,7 @@ namespace PermissionManagement.Utility
 
         public static string GetCompanyName()
         {
-            var s = ConfigurationManager.AppSettings["CompanyName"] ?? "First Bank of Nigeria";
+            var s = ConfigurationManager.AppSettings["CompanyName"] ?? "Polaris Bank Limited";
             return s;
         }
 

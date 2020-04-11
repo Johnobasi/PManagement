@@ -415,20 +415,21 @@ namespace PermissionManagement.Web
 
         public static bool IsFormEditable(string moduleName, string currentApprovalStatus)
         {
-            return !(Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) &&
-                currentApprovalStatus == Constants.ApprovalStatus.Pending) &&
-                Access.IsAccessRightInRoleProfile(Constants.Modules.UserSetup, Constants.AccessRights.Edit);
+            if (currentApprovalStatus != Constants.ApprovalStatus.Approved && currentApprovalStatus != Constants.ApprovalStatus.RejectedForCorrection) return false;
+
+            return (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) ||
+                Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Edit));
         }
 
-        public static bool CanEdit(string moduleName, string initiatedBy, string approvalStatus, bool IsDeleted)
+        public static bool InApprovableState(string moduleName, string initiatedBy, string approvalStatus, bool IsDeleted)
         {
+            if (approvalStatus == Constants.ApprovalStatus.Approved) return false;
+
             if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Verify) == true  && approvalStatus == Constants.ApprovalStatus.Pending) return true;
 
-            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Pending && initiatedBy != Helper.GetLoggedInUserID()) return true;  //&& IsDeleted == false
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Pending && initiatedBy != Helper.GetLoggedInUserID()) return true; 
 
-            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Approved) return true;
-
-            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Edit) && approvalStatus == Constants.ApprovalStatus.Approved) return true;
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Edit) && approvalStatus == Constants.ApprovalStatus.RejectedForCorrection) return true;
 
             if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.RejectedForCorrection  && initiatedBy == Helper.GetLoggedInUserID()) return true;
 

@@ -61,92 +61,92 @@ namespace PermissionManagement.Web
             return View();
         }
 
-        [AuditFilter(AuditLogLevel.LevelOne)]
-        [SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Create, Constants.AccessRights.Edit })]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult EditRemitlyCashPayout(RemittanceCashPickup model)
-        {
-            //the form to to process thre retrieved reference number
-            //here teller accept and record customer identity.
-            //system validate and send for approval
+        //[AuditFilter(AuditLogLevel.LevelOne)]
+        //[SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Create, Constants.AccessRights.Edit })]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //public ActionResult EditRemitlyCashPayout(RemittanceCashPickup model)
+        //{
+        //    //the form to to process thre retrieved reference number
+        //    //here teller accept and record customer identity.
+        //    //system validate and send for approval
 
-            return View();
-        }
+        //    return View();
+        //}
 
-        [AuditFilter(AuditLogLevel.LevelOne)]
-        [SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
-        public ActionResult ApproveRemitlyCashPayout(string referenceNumber)
-        {
-            //the form for approval personel to view and take action on approval or reject or reject for correction
+        //[AuditFilter(AuditLogLevel.LevelOne)]
+        //[SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        //public ActionResult ApproveRemitlyCashPayout(string referenceNumber)
+        //{
+        //    //the form for approval personel to view and take action on approval or reject or reject for correction
 
-            return View();
-        }
+        //    return View();
+        //}
 
-        [AuditFilter()]
-        [SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [MultipleButton(Name = "action", Argument = "RejectForCorrectionRemitlyCashPayout")]
-        public ActionResult RejectForCorrectionRemitlyCashPayout(RemittanceCashPickup model)
-        {
-            return ExecuteAction(model, Constants.ApprovalStatus.RejectedForCorrection);
-        }
+        //[AuditFilter()]
+        //[SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //[MultipleButton(Name = "action", Argument = "RejectForCorrectionRemitlyCashPayout")]
+        //public ActionResult RejectForCorrectionRemitlyCashPayout(RemittanceCashPickup model)
+        //{
+        //    return ExecuteAction(model, Constants.ApprovalStatus.RejectedForCorrection);
+        //}
 
-        [AuditFilter()]
-        [SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [MultipleButton(Name = "action", Argument = "RejectRemitlyCashPayout")]
-        public ActionResult RejectRemitlyCashPayout(RemittanceCashPickup model)
-        {
-            return ExecuteAction(model, Constants.ApprovalStatus.Rejected);
-        }
+        //[AuditFilter()]
+        //[SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //[MultipleButton(Name = "action", Argument = "RejectRemitlyCashPayout")]
+        //public ActionResult RejectRemitlyCashPayout(RemittanceCashPickup model)
+        //{
+        //    return ExecuteAction(model, Constants.ApprovalStatus.Rejected);
+        //}
 
-        [AuditFilter()]
-        [SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        [MultipleButton(Name = "action", Argument = "ApproveRemitlyCashPayout")]
-        public ActionResult ApproveRemitlyCashPayout(RemittanceCashPickup model)
-        {
-            return ExecuteAction(model, Constants.ApprovalStatus.Approved);
-        }
+        //[AuditFilter()]
+        //[SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Verify, Constants.AccessRights.MakeOrCheck })]
+        //[HttpPost]
+        //[ValidateAntiForgeryToken]
+        //[MultipleButton(Name = "action", Argument = "ApproveRemitlyCashPayout")]
+        //public ActionResult ApproveRemitlyCashPayout(RemittanceCashPickup model)
+        //{
+        //    return ExecuteAction(model, Constants.ApprovalStatus.Approved);
+        //}
 
-        private ActionResult ExecuteAction(RemittanceCashPickup model, string approvalStatus)
-        {
-            ValidationStateDictionary states = new ValidationStateDictionary();
+        //private ActionResult ExecuteAction(RemittanceCashPickup model, string approvalStatus)
+        //{
+        //    ValidationStateDictionary states = new ValidationStateDictionary();
 
-            model = _remittanceService.GetRemittance("REMITLY", model.ReferenNumber);
-            var dbApprovalStatus = Constants.ApprovalStatus.Pending;
+        //    model = _remittanceService.GetRemittance("REMITLY", model.ReferenNumber);
+        //    var dbApprovalStatus = Constants.ApprovalStatus.Pending;
 
-            //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
-            var permitEdit = Access.CanEdit(Constants.Modules.RemitlyPayout, model.InitiatedBy, dbApprovalStatus, model.IsDeleted);
-            if (permitEdit)
-            {
-                model.ApprovalStatus = approvalStatus;
+        //    //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
+        //    var permitEdit = Access.CanEdit(Constants.Modules.RemitlyPayout, model.InitiatedBy, dbApprovalStatus, model.IsDeleted);
+        //    if (permitEdit)
+        //    {
+        //        model.ApprovalStatus = approvalStatus;
 
-                var updated = _remittanceService.EditRemittance(model, ref states);
-                if (!states.IsValid)
-                {
-                    model.UserRole = new Role() { RoleId = model.RoleId };
-                    ModelState.AddModelErrors(states);
-                    var errorList = ValidationHelper.BuildModelErrorList(states);
-                    SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
-                    return View(model);
-                }
-                else
-                {
-                    if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
-                    else { Success(Constants.Messages.SaveSuccessful, true); }
-                    return RedirectToAction("ListRemittance");
-                }
-            }
-            else
-            {
-                Warning(Constants.Messages.EditNotPermittedError, true);
-                return RedirectToAction("ListRemittance");
-            }
-        }
+        //        var updated = _remittanceService.EditRemittance(model, ref states);
+        //        if (!states.IsValid)
+        //        {
+        //            model.UserRole = new Role() { RoleId = model.RoleId };
+        //            ModelState.AddModelErrors(states);
+        //            var errorList = ValidationHelper.BuildModelErrorList(states);
+        //            SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
+        //            return View(model);
+        //        }
+        //        else
+        //        {
+        //            if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
+        //            else { Success(Constants.Messages.SaveSuccessful, true); }
+        //            return RedirectToAction("ListRemittance");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        Warning(Constants.Messages.EditNotPermittedError, true);
+        //        return RedirectToAction("ListRemittance");
+        //    }
+        //}
     }
 }
