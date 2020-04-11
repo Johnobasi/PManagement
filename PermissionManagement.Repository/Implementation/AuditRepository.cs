@@ -536,7 +536,7 @@ namespace PermissionManagement.Repository
                         ApprovalStatus = Constants.ApprovalStatus.Pending,
                         InitiatorID = (string)incomingVersionCreatedBy,
                         PossibleVerifierID = Helper.ToStringCSV<string>(possibleApproverList.Select(f => f.Username).ToArray()),
-                        ActivityUrl = GetUrl(Constants.OperationType.Create, Constants.OperationType.Edit, modelID),
+                        ActivityUrl = GetUrl(Constants.OperationType.Create, Constants.OperationType.Approve, modelID),
                         RecordData = Crypto.Encrypt(JsonConvert.SerializeObject(incomingVersion)),
                         ApprovalDate = null,
                         RecordIdentification = recordIdentification,
