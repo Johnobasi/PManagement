@@ -58,6 +58,14 @@ namespace PermissionManagement.Web
                 return _authorizationStatus;
             }
 
+            //var key = CreateKey(httpContext);
+            //var isCached = HttpRuntime.Cache.Get(key) as string;
+            //if (isCached != null)
+            //{
+            //    _authorizationStatus = bool.Parse(isCached);
+            //    return _authorizationStatus;
+            //}
+
             if (_accessRequiredList != null)
             {
                 _authorizationStatus = Access.IsAccessAllowed(httpContext, _moduleName, _accessRequiredList, _verifyAreaAccessRight);
@@ -67,9 +75,18 @@ namespace PermissionManagement.Web
                 _authorizationStatus = Access.IsAccessAllowed(httpContext, _moduleName, _accessRequired, _verifyAreaAccessRight);
             }
 
+            //HttpRuntime.Cache.Insert(key, _authorizationStatus.ToString().ToLower());
+            
             return _authorizationStatus;
         }
 
+        private string CreateKey(HttpContextBase context)
+        {
+            // Or create some other unique key that allows you to identify 
+            // the same request
+            //context.User.Identity.Name + "|" +
+            return context.User.Identity.Name + "|" + context.Request.Url.AbsoluteUri;
+        }
         public override void OnAuthorization(AuthorizationContext filterContext)
         {
             base.OnAuthorization(filterContext);

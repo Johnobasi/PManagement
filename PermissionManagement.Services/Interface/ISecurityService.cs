@@ -7,6 +7,7 @@ namespace PermissionManagement.Services
 {
     public interface ISecurityService
     {
+        bool CancelUserSetupRequest(string id);
         User GetUser(string username);
         User GetUserBySessionId(string sessionId);
         //User GetUserByUsername(string Username);

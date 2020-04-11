@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Dapper;
+using Newtonsoft.Json;
 
 namespace PermissionManagement.Repository
 {
@@ -39,6 +40,57 @@ namespace PermissionManagement.Repository
         {
             return context.Query<string>("Select Username From [User] Where Username = @Username and IsDeleted = 0", new { Username = username }).FirstOrDefault();
         }
+        public bool CancelUserSetupRequest(string id)
+        {
+            var entity = context.Query<User>("SELECT * FROM [User] WHERE Username = @ID", new { ID = id }).FirstOrDefault();
+            if (entity == null) return false;
+
+            var username = Helper.GetLoggedInUserID();
+            if (!entity.InitiatedBy.Equals(username))
+            {
+                return false;
+            }
+
+            var status = false;
+            var approvalLog = context.GetById<ApprovalLog>(entity.ApprovalLogID);
+            if (approvalLog == null) return false;
+
+            var oldEntity = JsonConvert.DeserializeObject<User>(Crypto.Decrypt(approvalLog.RecordData));
+
+            if ((oldEntity == null || string.IsNullOrEmpty(oldEntity.ApprovalStatus) || string.IsNullOrEmpty(entity.ApprovalStatus)) && entity.ApprovalStatus != Constants.ApprovalStatus.Approved)  //never been approved, we can safely remove from StatementControlDB and ApprovalLog
+            {
+                var dbTransaction = dapperContext.GetTransaction();
+                context.Execute("DELETE FROM [User] WHERE ID = @ID; DELETE FROM UsersInRoles WHERE Username = @ID; DELETE FROM ApprovalLog WHERE ApprovalLogID = @ApprovalLogID;", new { ID = id, ApprovalLogID = entity.ApprovalLogID }, transaction: dbTransaction);
+                dapperContext.CommitTransaction();
+                status = true;
+            }
+            else if (!string.IsNullOrEmpty(entity.ApprovalStatus) && (oldEntity != null && !string.IsNullOrEmpty(oldEntity.ApprovalStatus)) && entity.ApprovalStatus != Constants.ApprovalStatus.Approved)
+            {
+                var dbTransaction = dapperContext.GetTransaction();
+
+                var sql = ("UPDATE [User] SET BranchID = @BranchID,  CreationDate=@CreationDate, Email = @Email, FirstName = @FirstName, LastName = @LastName, Username = @Username, Telephone = @Telephone, Initial = @Initial, ApprovalStatus = @ApprovalStatus, ApprovedBy = @ApprovedBy, InitiatedBy = @InitiatedBy, ApprovalLogID = @ApprovalLogID, BadPasswordCount = @BadPasswordCount, IsDeleted = @IsDeleted, isAccountExpired = @IsAccountExpired, IsDormented = @IsDormented,IsLockedOut = @IsLockedOut, AccountExpiryDate = @AccountExpiryDate, LastLogInDate = @LastLogInDate Where Username = @Username;");
+                var rowAffected = context.Execute(sql.ToString(), oldEntity, transaction: dbTransaction);
+                sql = ("UPDATE UsersInRoles SET RoleId = @RoleId, IsDeleted = @IsDeleted WHERE Username = @Username;");
+                context.Execute(sql.ToString(), oldEntity.UserRole, transaction: dbTransaction);
+                context.Execute("DELETE FROM ApprovalLog WHERE ApprovalLogID = @CanceledApprovalLogID", new { CanceledApprovalLogID = entity.ApprovalLogID }, transaction: dbTransaction);
+                dapperContext.CommitTransaction();
+                status = true;
+            }
+            else
+            {
+                var dbTransaction = dapperContext.GetTransaction();
+
+                var sql = ("UPDATE [User] SET IsDeleted = @IsDeleted, ApprovalStatus = @ApprovalStatus Where Username = @Username;");
+                var rowAffected = context.Execute(sql.ToString(), new { Username = entity.Username, IsDeleted = true, ApprovaStatus = Constants.ApprovalStatus.Rejected }, transaction: dbTransaction);
+                context.Execute("UPDATE ApprovalLog SET ApprovalStatus = 'Rejected', LastComment = 'Completed' WHERE ApprovalLogID = @CanceledApprovalLogID", new { CanceledApprovalLogID = entity.ApprovalLogID }, transaction: dbTransaction);
+                dapperContext.CommitTransaction();
+
+                status = true;
+            }
+
+            return status;
+        }
+
 
         public void AddUser(Model.User user)
         {
@@ -62,7 +114,7 @@ namespace PermissionManagement.Repository
             Model.User DummyObject = new User();
 
             //To handle maker checker functions
-            user = ar.MakerCheckerHandller<User>(DummyObject, user, Constants.OperationType.Create, Constants.Modules.UserSetup, user.Username, dbTransaction);
+            user = ar.MakerCheckerHandller<User>(DummyObject, user, Constants.OperationType.Create, Constants.Modules.UserSetup, user.Username, user.Username, dbTransaction);
 
             var success = context.Insert<User>(user, databaseTableName: "[User]", excludeFieldList: new string[] { "ConfirmPassword", "UserRole", "RoleId" }, transaction: dbTransaction);
             var sql = "INSERT UsersInRoles (Username, RoleId, IsDeleted) VALUES(@Username, @RoleId, @IsDeleted) ";
@@ -112,7 +164,7 @@ namespace PermissionManagement.Repository
 
             //To handle maker checker functions
             //maker checker can return the db version of an object depending on user action
-            user = ar.MakerCheckerHandller<User>(dbVersion, user, Constants.OperationType.Edit, Constants.Modules.UserSetup, user.Username, dbTransaction);
+            user = ar.MakerCheckerHandller<User>(dbVersion, user, Constants.OperationType.Edit, Constants.Modules.UserSetup, user.Username, user.Username, dbTransaction);
             UpdateEditedStatus(dbVersion, user, newUserDormentDays, activeUserDormentDays, accountExpiryDays);
             var sql = ("UPDATE [User] SET CreationDate=@CreationDate, Email = @Email, FirstName = @FirstName, LastName = @LastName, Username = @Username, Telephone = @Telephone, Initial = @Initial, ApprovalStatus = @ApprovalStatus, ApprovedBy = @ApprovedBy, InitiatedBy = @InitiatedBy, ApprovalLogID = @ApprovalLogID, BadPasswordCount = @BadPasswordCount, IsDeleted = @IsDeleted, isAccountExpired = @IsAccountExpired, IsDormented = @IsDormented,IsLockedOut = @IsLockedOut, AccountExpiryDate = @AccountExpiryDate, LastLogInDate = @LastLogInDate Where Username = @Username AND CONVERT(bigint,RowVersionNo) = @RowVersionNo2;");
             var rowAffected = context.Execute(sql.ToString(), user, transaction: dbTransaction);
@@ -587,7 +639,7 @@ namespace PermissionManagement.Repository
 
             //To handle maker checker functions
             //maker checker can return the db version of an object depending on user action
-            incomingVersion = ar.MakerCheckerHandller<User>(dbVersion, incomingVersion, Constants.OperationType.Delete, Constants.Modules.UserSetup, id, tr);
+            incomingVersion = ar.MakerCheckerHandller<User>(dbVersion, incomingVersion, Constants.OperationType.Delete, Constants.Modules.UserSetup, id, id, tr);
 
             context.Update<User>(incomingVersion, databaseTableName: "[User]", excludeFieldList: new string[] { "RoleId", "UserRole", "ConfirmPassword" }, primaryKeyList: new string[] { "Username" }, transaction: tr);
 

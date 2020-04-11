@@ -34,19 +34,31 @@ GO
 CREATE UNIQUE NONCLUSTERED INDEX [IX_User]
     ON [dbo].[User]([CurrentSessionID] ASC);
 
+
+
 CREATE TABLE [dbo].[ApprovalLog] (
-    [ApprovalLogID]      BIGINT         IDENTITY (1, 1) NOT NULL,
-    [InitiatorID]        VARCHAR (32)   NULL,
-    [PossibleVerifierID] VARCHAR (256)  NULL,
-    [VerifierID]         VARCHAR (32)   NULL,
-    [ActivityName]       VARCHAR (50)   NULL,
-    [ApprovalStatus]     VARCHAR (32)   NOT NULL,
-    [ApprovalDate]       DATETIME       NULL,
-    [ActivityUrl]        VARCHAR (256)  NULL,
-    [RecordData]         VARCHAR (4000) NULL,
-    [LastComment]        VARCHAR (256)  NULL,
+    [ApprovalLogID]        BIGINT         IDENTITY (1, 1) NOT NULL,
+    [InitiatorID]          VARCHAR (32)   NULL,
+    [PossibleVerifierID]   VARCHAR (256)  NULL,
+    [VerifierID]           VARCHAR (32)   NULL,
+    [ActivityName]         VARCHAR (50)   NULL,
+    [ApprovalStatus]       VARCHAR (32)   NOT NULL,
+    [ApprovalDate]         DATETIME       NULL,
+    [ActivityUrl]          VARCHAR (256)  NULL,
+    [RecordData]           VARCHAR (4000) NULL,
+    [LastComment]          VARCHAR (256)  NULL,
+    [CancellationUrl]      VARCHAR (256)  NULL,
+    [RecordIdentification] VARCHAR (64)   NULL,
+    [EntryDate]            DATETIME       NULL,
     CONSTRAINT [PK_ApprovalLog] PRIMARY KEY CLUSTERED ([ApprovalLogID] ASC)
 );
+
+
+GO
+CREATE NONCLUSTERED INDEX [IX_ActivityName_RecordID]
+    ON [dbo].[ApprovalLog]([ActivityName] ASC, [RecordIdentification] ASC);
+
+
 
 CREATE TABLE [dbo].[AuditChange] (
     [AuditChangeID]    BIGINT        IDENTITY (1, 1) NOT NULL,

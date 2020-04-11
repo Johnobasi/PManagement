@@ -9,6 +9,7 @@ namespace PermissionManagement.Repository
 {
    public interface ISecurityRepository
     {
+        bool CancelUserSetupRequest(string id);
         User GetUser(string username);
         //User GetUserByUsername(string Username);
         User GetUserBySessionId(string sessionId);

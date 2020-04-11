@@ -131,7 +131,9 @@
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Views\RemitlyPayout\" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\AuditFilter.cs" />
     <Compile Include="Common\CreateLogFiles.cs" />
@@ -530,6 +532,7 @@
     <Content Include="Views\Reports\UsersList.cshtml" />
     <Content Include="Views\Remitly\GetTransfer.cshtml" />
     <Content Include="Views\Remitly\UpdateTransfer.cshtml" />
+    <Content Include="Views\UserSetup\ApproveUser.cshtml" />
     <None Include="Web References\ADService\Reference.map">
       <Generator>MSDiscoCodeGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>

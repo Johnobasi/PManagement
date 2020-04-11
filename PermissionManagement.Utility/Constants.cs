@@ -16,6 +16,10 @@ namespace PermissionManagement.Utility
             public const string Create = "Create";
             public const string Edit = "Edit";
             public const string Delete = "Delete";
+            public const string Approve = "Approve";
+            public const string Reject = "Reject";
+            public const string RejectForCorrection = "RejectForCorrection";
+            public const string Complete = "Complete";
         }
 
         public class ApprovalNoticeType
@@ -130,6 +134,7 @@ namespace PermissionManagement.Utility
             public const string Reports = "Reports";
             public const string Admin = "Admin";
             public const string AuditTrail = "Audit";
+            public const string RemitlyPayout = "RemitlyPayout";
         }
 
         public class DateFormats
