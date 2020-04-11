@@ -38,6 +38,7 @@ namespace PermissionManagement.Web
 
         [AuditFilter(AuditLogLevel.LevelThree)]
         [SecurityAccess(Constants.Modules.RemitlyPayout, Constants.AccessRights.View)]
+
         public ActionResult RetrieveReference()
         {
             //form display input for branch teller to enter reference number presented by customer
