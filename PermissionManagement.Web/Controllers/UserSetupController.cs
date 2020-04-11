@@ -281,6 +281,7 @@ namespace PermissionManagement.Web
         public ActionResult ApproveUser(string id)
         {
             var userToEdit = _securityService.GetUser(id);
+            ViewBag.ModelId = userToEdit.Username;
 
             if (userToEdit != null && userToEdit.ApprovalStatus == Constants.ApprovalStatus.Pending)
             {
@@ -316,7 +317,7 @@ namespace PermissionManagement.Web
         [HttpPost]
         [ValidateAntiForgeryToken]
         [MultipleButton(Name = "action", Argument = "RejectUser")]
-        public ActionResult Reject(User model)
+        public ActionResult RejectUser(User model)
         {
             return ExecuteAction(model, Constants.ApprovalStatus.Rejected);
         }

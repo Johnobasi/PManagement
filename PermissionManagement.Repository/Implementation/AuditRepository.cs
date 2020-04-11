@@ -741,8 +741,8 @@ namespace PermissionManagement.Repository
                     }
                     else
                     {
-                        var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
-                        incomingVersion = rehydratedVersion;
+                        //var rehydratedVersion = JsonConvert.DeserializeObject<T>(Crypto.Decrypt(dbApprovalLog.RecordData));
+                        //incomingVersion = rehydratedVersion;
 
                         //for rejectedforcorrection we change the approval log in the rehydrated to the recent one.
                         (from m in list where m.Name == "InitiatedBy" select m).FirstOrDefault().SetValue(incomingVersion, dbApprovalLog.InitiatorID);

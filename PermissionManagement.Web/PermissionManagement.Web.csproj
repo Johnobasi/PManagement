@@ -131,7 +131,9 @@
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Views\RemitlyPayout\" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="Common\AuditFilter.cs" />
     <Compile Include="Common\CreateLogFiles.cs" />
@@ -146,7 +148,7 @@
     <Compile Include="Common\CompressFilter.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PortalSettingsController.cs" />
-    <Compile Include="Controllers\RemitlyController.cs" />
+    <Compile Include="Controllers\RemitlyPayoutController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

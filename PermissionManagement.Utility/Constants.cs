@@ -134,6 +134,7 @@ namespace PermissionManagement.Utility
             public const string Reports = "Reports";
             public const string Admin = "Admin";
             public const string AuditTrail = "Audit";
+            public const string RemitlyPayout = "RemitlyPayout";
         }
 
         public class DateFormats
