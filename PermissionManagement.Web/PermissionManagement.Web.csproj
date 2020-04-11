@@ -149,6 +149,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\PortalSettingsController.cs" />
     <Compile Include="Controllers\RemitlyController.cs" />
+    <Compile Include="Controllers\RemitlyPayoutController.cs" />
     <Compile Include="Controllers\ReportsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
