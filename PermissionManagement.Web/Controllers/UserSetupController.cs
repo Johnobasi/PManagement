@@ -259,21 +259,30 @@ namespace PermissionManagement.Web
             ValidationStateDictionary states = new ValidationStateDictionary();
             model.UserRole = new Role() { RoleId = model.RoleId, RoleName = (from r in _securityService.GetRoleList() where r.RoleId == model.RoleId select r.RoleName).FirstOrDefault() };
             model.InitiatedBy = ControllerContext.RequestContext.HttpContext.User.Identity.Name;
-            var updated = _securityService.EditUser(model, ref states);
-            if (!states.IsValid)
+
+            if (Access.IsFormEditable(Constants.Modules.UserSetup, model.ApprovalStatus))
             {
-                model.UserRole = new Role() { RoleId = model.RoleId };
-                ModelState.AddModelErrors(states);
-                var errorList = ValidationHelper.BuildModelErrorList(states);
-                SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
-                return View(model);
+                var updated = _securityService.EditUser(model, ref states);
+                if (!states.IsValid)
+                {
+                    model.UserRole = new Role() { RoleId = model.RoleId };
+                    ModelState.AddModelErrors(states);
+                    var errorList = ValidationHelper.BuildModelErrorList(states);
+                    SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
+                    return View(model);
+                }
+                else
+                {
+                    if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
+                    else { Success(Constants.Messages.SaveSuccessful, true); }
+                    return RedirectToAction("EditUser", new { id = model.Username });
+                }
             }
             else
             {
-                if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
-                else { Success(Constants.Messages.SaveSuccessful, true); }
+                Warning(Constants.Messages.EditNotPermittedError, true);
                 return RedirectToAction("EditUser", new { id = model.Username });
-            }                 
+            }
         }
 
         [AuditFilter(AuditLogLevel.LevelThree)]
@@ -340,7 +349,7 @@ namespace PermissionManagement.Web
             var dbApprovalStatus = Constants.ApprovalStatus.Pending;
 
             //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
-            var permitEdit = Access.CanEdit(Constants.Modules.UserSetup, model.InitiatedBy, dbApprovalStatus, model.IsDeleted);
+            var permitEdit = Access.InApprovableState(Constants.Modules.UserSetup, model.InitiatedBy, dbApprovalStatus, model.IsDeleted);
             if (permitEdit)
             {
                 model.ApprovalStatus = approvalStatus;
