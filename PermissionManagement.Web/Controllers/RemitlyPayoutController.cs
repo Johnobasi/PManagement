@@ -165,7 +165,7 @@ namespace PermissionManagement.Web
         {
             ValidationStateDictionary states = new ValidationStateDictionary();
 
-           var models = _cashPickupService.RetrieveReference(model.ReferenceNumber);
+            var models = _cashPickupService.RetrieveReference(model.ReferenceNumber);
             var dbApprovalStatus = Constants.ApprovalStatus.Pending;
 
             //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
@@ -177,7 +177,7 @@ namespace PermissionManagement.Web
                 var updated = _cashPickupService.EditRemittance(model.ReferenceNumber);
                 if (!states.IsValid)
                 {
-                    model.UserRole = new Role() { RoleId = model.RoleId};
+                    model.UserRole = new Role() { RoleId = model.RoleId };
                     ModelState.AddModelErrors(states);
                     var errorList = ValidationHelper.BuildModelErrorList(states);
                     SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
@@ -196,5 +196,6 @@ namespace PermissionManagement.Web
                 return RedirectToAction("Index");
             }
         }
+
     }
 }
