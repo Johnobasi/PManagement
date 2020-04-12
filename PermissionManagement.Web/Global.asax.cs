@@ -4,22 +4,19 @@ using PermissionManagement.Repository;
 using PermissionManagement.Services;
 using PermissionManagement.Utility;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Globalization;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using DryIoc;
-using DryIoc.Mvc;
 
 namespace PermissionManagement.Web
 {
-    public class MvcApplication : System.Web.HttpApplication
+    public class MvcApplication : HttpApplication
     {
         const string CsFileExtensions = "cshtml";
         protected void Application_Start()

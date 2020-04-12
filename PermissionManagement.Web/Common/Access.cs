@@ -188,8 +188,22 @@ namespace PermissionManagement.Web
                useFinacleRole = false;
            }
        }
+        public static bool CanEdit(string moduleName, string initiatedBy, string approvalStatus, bool IsDeleted)
+        {
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Verify) == true && approvalStatus == Constants.ApprovalStatus.Pending) return true;
 
-       private static void CreateThreadPrincipalAndAuthCookie(AuthenticationDataDto currentUser, SecurityConfig settings)
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Pending && initiatedBy != Helper.GetLoggedInUserID()) return true;  //&& IsDeleted == false
+
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.Approved) return true;
+
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.Edit) && approvalStatus == Constants.ApprovalStatus.Approved) return true;
+
+            if (Access.IsAccessRightInRoleProfile(moduleName, Constants.AccessRights.MakeOrCheck) && approvalStatus == Constants.ApprovalStatus.RejectedForCorrection && initiatedBy == Helper.GetLoggedInUserID()) return true;
+
+            return false;
+        }
+
+        private static void CreateThreadPrincipalAndAuthCookie(AuthenticationDataDto currentUser, SecurityConfig settings)
        {
            //create the cookie                
            Identity identity = new Identity(new Guid(currentUser.SessionId), currentUser.Username, currentUser.Roles, currentUser.FullName, currentUser.BranchCode, currentUser.AccountType);

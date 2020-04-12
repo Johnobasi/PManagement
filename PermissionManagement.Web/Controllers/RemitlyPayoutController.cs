@@ -53,7 +53,7 @@ namespace PermissionManagement.Web
             //form display input for branch teller to enter reference number presented by customer
             if (referenceNumber == null)
             {
-                throw new Exception("Cannot get details for requested refernce Number");
+                throw new Exception("Cannot get details for requested reference Number");
             }
 
             //call RemmitlyAPI to get the details
