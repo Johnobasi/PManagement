@@ -165,7 +165,7 @@ namespace PermissionManagement.Web
         {
             ValidationStateDictionary states = new ValidationStateDictionary();
 
-           var models = _cashPickupService.RetrieveReference("REMITLY", model.ReferenceNumber);
+           var models = _cashPickupService.RetrieveReference(model.ReferenceNumber);
             var dbApprovalStatus = Constants.ApprovalStatus.Pending;
 
             //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
@@ -174,7 +174,7 @@ namespace PermissionManagement.Web
             {
                 model.ApprovedStatus = approvalStatus;
 
-                var updated = _cashPickupService.EditRemittance(model, ref states);
+                var updated = _cashPickupService.EditRemittance(model.ReferenceNumber);
                 if (!states.IsValid)
                 {
                     model.UserRole = new Role() { RoleId = model.RoleId};
@@ -185,15 +185,15 @@ namespace PermissionManagement.Web
                 }
                 else
                 {
-                    if (updated == 0) { Warning(Constants.Messages.ConcurrencyError, true); }
+                    if (updated == null) { Warning(Constants.Messages.ConcurrencyError, true); }
                     else { Success(Constants.Messages.SaveSuccessful, true); }
-                    return RedirectToAction("ListRemittance");
+                    return RedirectToAction("Index");
                 }
             }
             else
             {
                 Warning(Constants.Messages.EditNotPermittedError, true);
-                return RedirectToAction("ListRemittance");
+                return RedirectToAction("Index");
             }
         }
     }

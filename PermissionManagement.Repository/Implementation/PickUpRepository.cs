@@ -159,5 +159,9 @@ namespace PermissionManagement.Repository.Implementation
             return ListResult;
         }
 
+        //public IEnumerable<RemittanceCashPickup> GetRemittance()
+        //{
+        //    return context.Query<RemittanceCashPickup>("SELECT * FROM RemittanceCashPickup").ToList();
+        //}
     }
 }

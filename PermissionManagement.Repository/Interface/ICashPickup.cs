@@ -10,7 +10,5 @@ namespace PermissionManagement.Repository.Interface
         Task<RemittanceCashPickup> RetrieveReference(string referenceNumber);
 
         Task<RemitlyEditTransfer> EditRemittance(string referenceNumber);
-
-      
     }
 }

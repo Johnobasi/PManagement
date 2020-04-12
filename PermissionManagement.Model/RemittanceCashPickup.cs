@@ -72,7 +72,8 @@ namespace PermissionManagement.Model
             public DateTime RowVersionNo { get; set; }
 
             public Guid RoleId { get; set; }
-            public UserRole UserRole { get; set; }
+            //public Role Role { get; set; }
+            public Role UserRole { get; set; }
 
 
     }
