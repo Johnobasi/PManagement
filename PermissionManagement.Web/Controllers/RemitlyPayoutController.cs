@@ -76,6 +76,7 @@ namespace PermissionManagement.Web
             return View(EditedCashPayOut);
         }
 
+
         [AuditFilter(AuditLogLevel.LevelOne)]
         [SecurityAccess(Constants.Modules.RemitlyPayout, new string[] { Constants.AccessRights.Create, Constants.AccessRights.Edit })]
         [HttpPost]
@@ -196,6 +197,5 @@ namespace PermissionManagement.Web
                 return RedirectToAction("Index");
             }
         }
-
     }
 }
