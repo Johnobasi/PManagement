@@ -77,6 +77,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Drawing.Design" />
     <Reference Include="System.Management" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -103,6 +104,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Implementation\PickUpRepository.cs" />
     <Compile Include="Implementation\CreateLogFiles.cs" />
     <Compile Include="Implementation\DapperContext.cs" />
     <Compile Include="Implementation\FinacleRepository.cs" />
@@ -112,6 +114,7 @@
     <Compile Include="Implementation\ReportsRepository.cs" />
     <Compile Include="Implementation\RepositoryServicesPortalSetting.cs" />
     <Compile Include="Interface\IAuditRepository.cs" />
+    <Compile Include="Interface\ICashPickup.cs" />
     <Compile Include="Interface\IFinacleRepository.cs" />
     <Compile Include="Interface\IMessageRepository.cs" />
     <Compile Include="Interface\ILogRepository.cs" />

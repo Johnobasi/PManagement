@@ -1,0 +1,620 @@
+﻿@model PermissionManagement.Model.RemittanceCashPickup
+
+@{
+    ViewBag.Title = "ApproveRemitlyCashPayout";
+}
+
+<h2>ApproveRemitlyCashPayout</h2>
+
+<div>
+    
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ProcessStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProcessStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PaymentStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PaymentStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PaymentReference)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PaymentReference)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TimeRetrieved)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TimeRetrieved)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TimeProcessed)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TimeProcessed)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DateRetrieved)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DateRetrieved)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ResponseCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ResponseCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ResponseMessage)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ResponseMessage)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.UserMessage)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UserMessage)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RequestReference)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RequestReference)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IMTOUpdateTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IMTOUpdateTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsIMTOUpdated)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsIMTOUpdated)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IMTOUpdateTrialCount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IMTOUpdateTrialCount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PostTrialCount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PostTrialCount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IMTOReason)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IMTOReason)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IMTO)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IMTO)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReferenceNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReferenceNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RemittanceTrackingCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RemittanceTrackingCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderFirstName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderFirstName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderMiddleName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderMiddleName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderLastName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderLastName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderTelephoneNo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderTelephoneNo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderMobileNo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderMobileNo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderEmail)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderEmail)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderAddress)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderAddress)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderNationalityCountryCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderNationalityCountryCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderBirthDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderBirthDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverFirstName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverFirstName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverMiddleName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverMiddleName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverLastName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverLastName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverTelephoneNo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverTelephoneNo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverMobileNo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverMobileNo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverEmail)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverEmail)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverAddress)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverAddress)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverNationalityCountryCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverNationalityCountryCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RemittanceRecordingDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RemittanceRecordingDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SendingCountryCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SendingCountryCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DestinationCountryCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DestinationCountryCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PayingAmount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PayingAmount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PayoutAmount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PayoutAmount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PayingCurrencyCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PayingCurrencyCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PayoutCurrencyCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PayoutCurrencyCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PayoutSettlementRate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PayoutSettlementRate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SettlementPayoutAmount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SettlementPayoutAmount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RemittanceStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RemittanceStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieveOrderCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieveOrderCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SendingReason)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SendingReason)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverBankName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverBankName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverBranchName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverBranchName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverAccountNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverAccountNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OtherBank)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OtherBank)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PayingToPayOutRate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PayingToPayOutRate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverBankCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverBankCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverBranchCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverBranchCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverRoutingNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverRoutingNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverSortCode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverSortCode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecieverSwiftBIC)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecieverSwiftBIC)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderFundSource)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderFundSource)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderOccupation)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderOccupation)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderIDType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderIDType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SenderIDNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SenderIDNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverIDType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverIDType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReceiverIDNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReceiverIDNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PaymentStatusOverride)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PaymentStatusOverride)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OverrideStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OverrideStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OverrideActionBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OverrideActionBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OverrideDateTime)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OverrideDateTime)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApprovedStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApprovedStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.InitiatedBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.InitiatedBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApprovedBy)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApprovedBy)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ApprovedLogId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ApprovedLogId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsDeleted)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsDeleted)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RowVersionNo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RowVersionNo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RoleId)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RoleId)
+        </dd>
+
+    </dl>
+</div>
+<input type="hidden" name="result" id="result" />
+<a data-value="Approve" class="btn btn-sm btn-success submitButton">Approve</a>
+<a data-value="Decline" class="btn btn-sm btn-success submitButton">Decline</a>
+
+<script>
+    $('.submitButton').on('click', function (e) {
+        e.preventDefault();
+        $('#result').val($(this).data('value'));
+        $('form').submit();
+    });
+</script>
+<p>
+    @Html.ActionLink("Back to List", "Index")
+</p>

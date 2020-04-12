@@ -1,0 +1,65 @@
+﻿@model PermissionManagement.Model.RemitlyRemittance
+@{
+    ViewBag.Title = "RetrieveReference";
+}
+
+<h2>Enter ReferenceTrackingCode to generate transfer</h2>
+@using (Html.BeginForm("RetrieveReference", "Remitly"))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "Please fix this error")
+    <div class="form-group">
+        @Html.LabelFor(m => m.Reference_Number)
+        @Html.TextBoxFor(m => m.Reference_Number, new { @class = "form-controll" })
+        @Html.ValidationMessageFor(m => m.Reference_Number)
+    </div>
+
+    <div class="text-center panel-body">
+        <button type="submit" class="btn btn-sm btn-primary"> Get Transfer</button>
+    </div>
+}
+
+@if (Model != null)
+{
+    <h2> Detail Transfer</h2>
+    <table class="table table-sm table-striped" table-bordered m-2>
+        <thead>
+            <tr>
+                <th>Reference Number</th>
+                <th>Created On</th>
+                <th>State</th>
+                <th>Type</th>
+                <th>Payer Code</th>
+                <th>Send Amount</th>
+                <th>Receive Amount</th>
+                <th>Bank Account</th>
+                <th>Sender</th>
+                <th>Reciever</th>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Identification</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>@Model.Reference_Number</td>
+                <td>@Model.Created_On</td>
+                <td>@Model.State</td>
+                <td>@Model.Type</td>
+                <td>@Model.Payer_Codes</td>
+                <td>@Model.Send_Amount</td>
+                <td>@Model.Receive_Amount</td>
+                <td>@Model.Bank_Account</td>
+                <td>@Model.Sender</td>
+                <td>@Model.Receiver</td>
+                <td>@Model.Name</td>
+                <td>@Model.Address</td>
+                <td>@Model.Identification</td>
+
+            </tr>
+        </tbody>
+    </table>
+
+}
+
+

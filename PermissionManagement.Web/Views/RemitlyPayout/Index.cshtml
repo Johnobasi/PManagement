@@ -1,0 +1,47 @@
+﻿@model IEnumerable<PermissionManagement.Model.RemitlyTransferHeader>
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>List of Cash PickUp</h2>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.Reference_Number)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Created_On)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.State)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Type)
+        </th>
+        <th></th>
+    </tr>
+
+@foreach (var item in Model) {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.Reference_Number)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Created_On)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.State)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Type)
+        </td>
+    </tr>
+}
+
+</table>

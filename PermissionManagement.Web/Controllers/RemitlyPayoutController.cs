@@ -1,12 +1,12 @@
-﻿using DataTables.Mvc;
-using PermissionManagement.Model;
+﻿using PermissionManagement.Model;
 using PermissionManagement.Repository;
+using PermissionManagement.Repository.Interface;
 using PermissionManagement.Services;
 using PermissionManagement.Utility;
 using PermissionManagement.Validation;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Configuration;
+using System.Net.Http;
 using System.Web.Mvc;
 
 
@@ -18,13 +18,15 @@ namespace PermissionManagement.Web
         private ISecurityService _securityService;
         private ICacheService _cacheService;
         private IFinacleRepository _flexCubeRepository;
+        private ICashPickup _cashPickupService;
         #endregion
 
-        public RemitlyPayoutController(ISecurityService securityService, ICacheService cacheService, IFinacleRepository finacleRepository)
+        public RemitlyPayoutController(ISecurityService securityService, ICacheService cacheService, IFinacleRepository finacleRepository, ICashPickup cashPickupService)
         {
             _securityService = securityService;
             _flexCubeRepository = finacleRepository;
             _cacheService = cacheService;
+            _cashPickupService = cashPickupService;
         }
 
 
@@ -33,33 +35,45 @@ namespace PermissionManagement.Web
         public ActionResult Index()
         {
             //List cash pickup for the branch...
+            var cashPickup = _cashPickupService.ListCashPickup();
+
+            return View(cashPickup);
+        }
+
+        [HttpGet]
+        public ActionResult RetrieveReference()
+        {
             return View();
         }
 
         [AuditFilter(AuditLogLevel.LevelThree)]
         [SecurityAccess(Constants.Modules.RemitlyPayout, Constants.AccessRights.View)]
-
-        public ActionResult RetrieveReference()
+        public ActionResult RetrieveReference(string referenceNumber)
         {
             //form display input for branch teller to enter reference number presented by customer
+            if (referenceNumber == null)
+            {
+                throw new Exception("Cannot get details for requested refernce Number");
+            }
 
             //call RemmitlyAPI to get the details
+            var refRetrieve = _cashPickupService.RetrieveReference(referenceNumber);
+            return View(refRetrieve);
 
             //if successful, write to db and redirect page to display the details
 
             //if not display the appropriate error
 
-            return View();
-
+            //return View();
         }
 
         [AuditFilter(AuditLogLevel.LevelThree)]
         [SecurityAccess(Constants.Modules.RemitlyPayout, Constants.AccessRights.View)]
         public ActionResult EditRemitlyCashPayout(string referenceNumber)
         {
-            //the form to display the details of retrieved ference number (its a get)
-
-            return View();
+            //the form to display the details of retrieved reference number (its a get)
+            var EditedCashPayOut = _cashPickupService.EditRemittance(referenceNumber);
+            return View(EditedCashPayOut);
         }
 
         [AuditFilter(AuditLogLevel.LevelOne)]
@@ -69,10 +83,39 @@ namespace PermissionManagement.Web
         public ActionResult EditRemitlyCashPayout(RemittanceCashPickup model)
         {
             //the form to to process thre retrieved reference number
+            using (var client = new HttpClient())
+            {
+                string url = ConfigurationManager.AppSettings["RemitlyBaseURL"];
+
+                var content = new MultipartFormDataContent();
+                client.BaseAddress = new Uri(url);
+                var responseTask = client.PostAsync($"/IMTOAPI.Project/Remitly/UpdateTransfer/", content);
+                responseTask.Wait();
+
+                var result = responseTask.Result;
+                if (result.IsSuccessStatusCode)
+                {
+                    TempData["SuccessMessage"] = $"Cash Pickup was successfully updated.";
+
+                    return RedirectToAction("Index", new { CashPickupIdId = model.Id });
+                }
+
+                if ((int)result.StatusCode == 422)
+                {
+                    ModelState.AddModelError("", "CashPickup entry Already Exists!");
+                }
+                else
+                {
+                    ModelState.AddModelError("", "Some kind of error. CashPickup not updated!");
+                }
+            }
+
+            var cashPicks = _cashPickupService.EditRemittance(model.ReferenceNumber);
+            return View(cashPicks);
             //here teller accept and record customer identity.
             //system validate and send for approval
 
-            return View();
+            //return View();
         }
 
         [AuditFilter(AuditLogLevel.LevelOne)]
@@ -80,8 +123,12 @@ namespace PermissionManagement.Web
         public ActionResult ApproveRemitlyCashPayout(string referenceNumber)
         {
             //the form for approval personel to view and take action on approval or reject or reject for correction
-
-            return View();
+            var CashPickupToApproved = _cashPickupService.RetrieveReference(referenceNumber);
+            if (referenceNumber == null)
+            {
+                return HttpNotFound();
+            }
+            return View(CashPickupToApproved);
         }
 
         [AuditFilter()]
@@ -118,19 +165,19 @@ namespace PermissionManagement.Web
         {
             ValidationStateDictionary states = new ValidationStateDictionary();
 
-            model = _remittanceService.GetRemittance("REMITLY", model.ReferenNumber);
+           var models = _cashPickupService.RetrieveReference("REMITLY", model.ReferenceNumber);
             var dbApprovalStatus = Constants.ApprovalStatus.Pending;
 
             //the user that put a record in pending mode will always be stored as initiated by - meaning the db will be updated.
             var permitEdit = Access.CanEdit(Constants.Modules.RemitlyPayout, model.InitiatedBy, dbApprovalStatus, model.IsDeleted);
             if (permitEdit)
             {
-                model.ApprovalStatus = approvalStatus;
+                model.ApprovedStatus = approvalStatus;
 
-                var updated = _remittanceService.EditRemittance(model, ref states);
+                var updated = _cashPickupService.EditRemittance(model, ref states);
                 if (!states.IsValid)
                 {
-                    model.UserRole = new Role() { RoleId = model.RoleId };
+                    model.UserRole = new Role() { RoleId = model.RoleId};
                     ModelState.AddModelErrors(states);
                     var errorList = ValidationHelper.BuildModelErrorList(states);
                     SetAuditInfo(Helper.StripHtml(errorList, true), string.Empty);
