@@ -181,6 +181,7 @@ namespace PermissionManagement.Web
            {
                validateWithAD = false;
                useFinacleRole = true;
+                
            }
            if (currentUser != null && currentUser.IsPasswordSet && currentUser.IsRoleSet)
            {
