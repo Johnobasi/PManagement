@@ -4,7 +4,7 @@
 }
 
 <h2>Enter ReferenceTrackingCode to generate transfer</h2>
-@using (Html.BeginForm("RetrieveReference", "Remitly"))
+@using (Html.BeginForm("RetrieveReference", "RemitlyPayout"))
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true, "Please fix this error")

@@ -7,41 +7,44 @@
 <h2>List of Cash PickUp</h2>
 
 <p>
-    @Html.ActionLink("Create New", "Create")
+    @Html.ActionLink("RetrieveReference", "RemitlyPayout", "Fetch Transfer Details", null, new {@class="btn btn-sm btn-secondary"})
 </p>
 
-<table class="table">
-    <tr>
-        <th>
-            @Html.DisplayNameFor(model => model.Reference_Number)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Created_On)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.State)
-        </th>
-        <th>
-            @Html.DisplayNameFor(model => model.Type)
-        </th>
-        <th></th>
-    </tr>
+<table class="table table-sm table-striped" table-bordered m-2>
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Reference_Number)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Created_On)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.State)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Type)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
 
 @foreach (var item in Model) {
-    <tr>
-        <td>
-            @Html.DisplayFor(modelItem => item.Reference_Number)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Created_On)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.State)
-        </td>
-        <td>
-            @Html.DisplayFor(modelItem => item.Type)
-        </td>
-    </tr>
+    <tbody>
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Reference_Number)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Created_On)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.State)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Type)
+            </td>
+        </tr>
+    </tbody>
 }
-
 </table>
