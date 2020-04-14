@@ -103,6 +103,11 @@ namespace PermissionManagement.Utility
             if (!HttpContext.Current.User.Identity.IsAuthenticated) return "in";
             return "out";
         }
+        public static string GetRemitlyURL()
+        {
+            if (!HttpContext.Current.User.Identity.IsAuthenticated) return string.Format("{0}/remitlypayout", Helper.GetRootURL());
+            return Helper.GetRootURL();
+        }
 
         public static string GetHomeURL()
         {

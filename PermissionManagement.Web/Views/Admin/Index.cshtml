@@ -77,21 +77,35 @@
     </div>
 </div>
 
-    <div class="row">
-        <div class="col-md-6 col-sm-6">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <b>Reports</b>
-                </div>
-                <div class="panel-body">
-                    <p>Use this option to view and run different available reports. For full option details, click Reports menu on the side navigation.</p>
-                </div>
-                <div class="panel-footer">
-                    <a href="@Helper.GetRootURL()/reports">Reports</a>
-                </div>
+<div class="row">
+    <div class="col-md-6 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Reports</b>
+            </div>
+            <div class="panel-body">
+                <p>Use this option to view and run different available reports. For full option details, click Reports menu on the side navigation.</p>
+            </div>
+            <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/reports">Reports</a>
             </div>
         </div>
     </div>
+
+    <div class="col-md-6 col-sm-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Remitly PayOut</b>
+            </div>
+            <div class="panel-body">
+                <p>Use this option to view and manage Remitly IMTO transfer. For full option details, click Remitly-PayOut menu on the side navigation.</p>
+            </div>
+            <div class="panel-footer">
+                <a href="@Helper.GetRootURL()/remitlypayout/Index">List Cash Transfer</a>
+            </div>
+        </div>
+    </div>
+</div>
 }
 @section scripts {
     <script type="text/javascript">
