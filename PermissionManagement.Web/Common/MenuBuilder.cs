@@ -55,6 +55,20 @@ namespace PermissionManagement.Web
                 menuList.Add(childItem);
             }
 
+            if (Access.IsAccessRightInRoleProfile(Constants.Modules.RemitlyPayout, Constants.AccessRights.View))
+            {
+                menuItem = MakeMenu("RemitlyPayOut IMTO", true, false, "#", "fa fa-users fa-fw", "nav nav-second-level", null);
+                menuList.Add(menuItem);
+                childItem = MakeMenu("List Branch CashPickUp", false, true, "/RemitlyPickout/Index", "fa fa-list fa-fw", "nav nav-second-level", menuItem);
+                menuList.Add(childItem);
+                childItem = MakeMenu("Fetch Trnasfer", false, true, "/RemitlyPayout/RetrieveReference", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
+                menuList.Add(childItem);
+                childItem = MakeMenu("Edit Transfer", false, true, "/RemitlyPayout/EditRemitlyCashPayout", "fa fa-list fa-fw", "nav nav-second-level", menuItem);
+                menuList.Add(childItem);
+                childItem = MakeMenu("Approve Transfer", false, true, "/RemitlyPayout/ApproveRemitlyCashPayout", "fa fa-edit fa-fw", "nav nav-second-level", menuItem);
+                menuList.Add(childItem);
+            }
+
             if (Access.IsAccessRightInRoleProfile(Constants.Modules.AuditTrail, Constants.AccessRights.View))
             {
                 menuItem = MakeMenu("Audit Trail", true, false, "#", "fa fa-building-o fa-fw", "nav nav-second-level", null);
