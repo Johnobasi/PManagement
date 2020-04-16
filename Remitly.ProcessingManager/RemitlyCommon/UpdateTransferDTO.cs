@@ -26,6 +26,7 @@ namespace IMTO.Common.RemitlyCommon
 
     public enum ErrorCode
     {
+        ERROR,
         INVALID_ACCOUNT_NUMBER,
         INVALID_ROUTING_NUMBER,
         INVALID_ACCOUNT_TYPE,
