@@ -28,6 +28,7 @@ namespace IMTO.Common.RemitlyCommon
     {
         
         INVALID_ACCOUNT_NUMBER,
+        True,
         INVALID_ROUTING_NUMBER,
         INVALID_ACCOUNT_TYPE,
         INVALID_ACCOUNT_CURRENCY,
