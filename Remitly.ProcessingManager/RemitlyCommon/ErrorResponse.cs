@@ -12,5 +12,6 @@ namespace IMTO.Common.RemitlyCommon
         public string message { get; set; }
         public string details { get; set; }
         public int MyProperty { get; set; }
+        public int secondary { get; set; }
     }
 }
